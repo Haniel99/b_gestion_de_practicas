@@ -1,9 +1,8 @@
-## Envioment setup
-### npm init -y
-### npm i -D typescript
-### npm i -D ts-node
-### tsc --init 
-### npm i nodemon express siqulize mysql2 express-validator 
-## Setup Express Server
-## Setup siqulize
-## Start server   
+# Gestion de practicas
+## Comandos para inicar el proyecto
+En primer lugar se debe clonar el proyecto. Una ves clonado ingrese el siguiente comando en la consola ubicada en la carpeta del proyecto: "npm i", en caso de que le salga algun error, se debe hacer lo siguiente.
+1. npm i -D typescript
+2. npm i -D ts-node
+3. tsc --init
+Ahora si puede inicar el servidor con el comando "npm start". 
+## Funciones del sevidor 
