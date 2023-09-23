@@ -1,0 +1,9 @@
+## Envioment setup
+### npm init -y
+### npm i -D typescript
+### npm i -D ts-node
+### tsc --init 
+### npm i nodemon express siqulize mysql2 express-validator 
+## Setup Express Server
+## Setup siqulize
+## Start server   
