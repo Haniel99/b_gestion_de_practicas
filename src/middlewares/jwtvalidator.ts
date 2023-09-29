@@ -6,7 +6,7 @@ import { Request } from "../interfaces/express.interfaces";
 const tokenValidator = (req: Request, res: Response, next: NextFunction) => {
   try {
     let jwt: string | undefined = req.headers.authorization;
-    
+    console.log(jwt);
     if (!jwt) {
       return res.status(400).json({
         status: false,
@@ -15,9 +15,11 @@ const tokenValidator = (req: Request, res: Response, next: NextFunction) => {
     }
     
     let secretKey: string = process.env.SECRET_KEY || "";
+
     const  {payload}: any = verifyToken(jwt, secretKey);
     //Verificar existencia del usuario en la base de datos
     //Verificar estado en la base de datos
+    console.log(payload);
     req.user = payload;
     next();
 } catch (error) {

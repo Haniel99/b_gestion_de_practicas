@@ -4,4 +4,5 @@ export const routes = [
     "practice",
     "report",
     "department",
+    "career"
 ];

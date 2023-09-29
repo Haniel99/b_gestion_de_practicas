@@ -1,12 +1,15 @@
+//Helpers
 import { errorHandler, excelToJson } from "../../helpers";
-import { Request, Response } from "../../interfaces/express.interfaces";
+//Interfaces
+import { IUser, IExcel, Request, Response } from "../../interfaces";
+
 import {
   Department,
   Establishment,
   Practice,
   User,
 } from "../../app/app.associatios";
-import { IUser } from "../../interfaces/IModules/user.interface";
+
 export class PracticeModule {
   constructor() {}
 
@@ -15,20 +18,20 @@ export class PracticeModule {
       if (!req.file) {
         return res.status(400).json({
           status: false,
-          message: "No se recibio ningun archivo",
+          message: "No file received",
         });
       }
       const excelData = await excelToJson(req.file.buffer);
-      let practices: any = [];
-      excelData.data.forEach((element: any) => {
-        //Construir arregle de las practicas
+      let practices: IUser[] = [];
+      excelData.data.forEach((element: IExcel) => {
+         
       });
 
       const queryResult = await Practice.bulkCreate([]);
 
       return res.status(200).json({
         status: true,
-        message: "El archivo se resivio exitosamente",
+        message: "file saved successfully",
         response: excelData,
       });
     } catch (error) {

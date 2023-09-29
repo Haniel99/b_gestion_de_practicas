@@ -27,16 +27,9 @@ const generateToken = (
   }
 };
 
-const verifyToken = (
-  token: string,
-  key: string | Buffer
-): Error | any => {
-  try {
+const verifyToken = (token: string, key: string | Buffer) => {
     const tokenData = jwt.verify(token, key);
     return tokenData;
-  } catch (error) {
-    return new Error("Error al verificar el token.");
-  }
 };
 
 export { generateToken, verifyToken };
