@@ -7,8 +7,14 @@ export interface IActionsLazy {
     sort_type: string,
     sort_by: string,
     filter: boolean,
-    filters:  string[],
+    filters:  IOptionFilter[],
     size: number
+}
+
+interface IOptionFilter {
+    column: string,
+    value: string,
+    op: string
 }
 
 export interface IOptionesLazy{

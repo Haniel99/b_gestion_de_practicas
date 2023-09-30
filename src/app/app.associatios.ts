@@ -53,6 +53,15 @@ Practice.belongsTo(Career, { foreignKey: "career_id", as: "career" });
 User.hasMany(UploadHistory, { foreignKey: "user_id", as: "uploadHistories" });
 UploadHistory.belongsTo(User, { foreignKey: "user_id", as: "user" });
 
+Career.belongsTo(User, {
+  foreignKey: "user_id",
+  as: "coordinator"
+})
+User.hasOne(Career, {
+  foreignKey: "user_id",
+  as: "career"
+})
+
 export {
   User,
   Rol,

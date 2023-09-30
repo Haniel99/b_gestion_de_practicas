@@ -7,6 +7,7 @@ Career.init(
     code_regular_plan: DataTypes.INTEGER,
     code_procecution: DataTypes.INTEGER,
     address: DataTypes.STRING,
+    user_id: DataTypes.INTEGER
   },
   {
     sequelize,
