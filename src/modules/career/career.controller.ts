@@ -1,6 +1,6 @@
 import { errorHandler, lazyTable } from "../../helpers";
 import { Request, Response } from "../../interfaces";
-import { Career, Practice } from "../../app/app.associatios";
+import { Career, Establishment, Practice, User } from "../../app/app.associatios";
 import sequelize from "sequelize";
 export class CareerModule  {
     constructor(){}
@@ -39,17 +39,35 @@ export class CareerModule  {
     static async careerPractices(req: Request, res: Response){
         try {
             const { id } = req.params;
-            const careerPracticesData = await Career.findAll({
-                include: [
-                    {
-                        model: Practice,
-                        as: "practices"
-                    }
-                ]
-            })
+            let options = lazyTable(req.body);
+            options.where.career_id = id;
+            options.include = [
+                {
+                    model: User,
+                    as: "student",
+                    attributes: [
+                        "id",
+                        "name",
+                        "last_name",
+                        "rut"
+                    ]
+                },
+                {
+                    model: Establishment,
+                    as: "establishment",
+                    attributes: [
+                        "id",
+                        "name"
+                    ]
+                }
+            ];
             
-            if(!careerPracticesData){
-                return res.status(400).json({
+            const careerPracticesData = await Practice.findAll(options);
+            const countPractices = await Practice.count(options);
+            const career = await Career.findByPk(id, { attributes: ["name"] });
+            
+            if(careerPracticesData.length === 0){
+                return res.status(404).json({
                     message: "No data found",
                     response: []
                 })
@@ -57,7 +75,10 @@ export class CareerModule  {
 
             return res.status(200).json({
                 message: "Successfuly query",
-                response: careerPracticesData 
+                response: {
+                    practices: careerPracticesData,
+                    count: countPractices,
+                    career: career}
             });
         } catch (error) {
             errorHandler(res,error);

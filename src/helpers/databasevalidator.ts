@@ -1,4 +1,4 @@
-import { Practice } from "../app/app.associatios";
+import { Career, Practice } from "../app/app.associatios";
 
 const existPracticeById = async (id = "") => {
   const result = await Practice.findByPk(id);
@@ -8,6 +8,15 @@ const existPracticeById = async (id = "") => {
   }
 };
 
+const existCareerById = async (id = "") => {
+  const result = await Career.findByPk(id);
+
+  if (!result) {
+    throw new Error(`Id ${id} does not exist in the database`);
+  }
+}
+
 export {
-    existPracticeById
+    existPracticeById,
+    existCareerById
 }
