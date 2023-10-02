@@ -19,6 +19,14 @@ export class CareerModule  {
                         model: Practice,
                         as: "practices",
                         attributes: []
+                    },
+                    {
+                        model: User,
+                        as: "coordinator",
+                        attributes: [
+                            "name",
+                            "last_name"
+                        ]
                     }
                 ],
                 group: [
@@ -40,7 +48,6 @@ export class CareerModule  {
         try {
             const { id } = req.params;
             let options = lazyTable(req.body);
-            options.where.career_id = id;
             options.include = [
                 {
                     model: User,
@@ -61,6 +68,14 @@ export class CareerModule  {
                     ]
                 }
             ];
+
+            if(options.where) {
+                options.where.career_id = id;
+            } else {
+                options.where = {
+                    career_id : id
+                };
+            }
             
             const careerPracticesData = await Practice.findAll(options);
             const countPractices = await Practice.count(options);

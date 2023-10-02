@@ -81,4 +81,46 @@ export class PracticeModule {
       errorHandler(res, error)
     }
   }
+
+  static async update(req: Request, res: Response) {
+
+    try {
+      
+      const { id } = req.params;
+      const data = req.body;
+      console.log("--------------------------")
+      console.log(data);
+      const practice = await Practice.findByPk(id);
+
+      //Crear profesor colaborador y asociar a practica
+      if(data.taller) {
+        const workshopTeacher: any = await User.create(data.taller);
+        console.log(workshopTeacher);
+        await practice?.update({ workshop_teacher_id: workshopTeacher.id })
+      }
+      //Crear profesor de taller y asociar a practica
+      if(data.colaborador) {
+        const collaboratingTeacher: any = await User.create(data.colaborador);
+        await practice?.update({ collaborating_teacher_id: collaboratingTeacher.id })
+      }
+
+      return res.status(200).json({
+        status: true,
+        message: "Successfully updated data"
+      })
+
+    } catch (error) {
+      errorHandler(res, error);
+    }
+
+  }
+
+  static async excelPracticesData(req: Request, res: Response) {
+    try {
+      
+    } catch (error) {
+      
+    }
+  }
+
 }

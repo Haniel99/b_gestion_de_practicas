@@ -22,4 +22,11 @@ router.get("/view/:id",
   PracticeModule.view
 );
 
+router.put("/update/:id",
+  [
+    
+  ],
+  PracticeModule.update
+);
+
 export { router };
