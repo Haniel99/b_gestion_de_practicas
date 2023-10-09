@@ -5,19 +5,19 @@ class User extends Model {}
 User.init(
   {
     name: DataTypes.STRING,
-    last_name: DataTypes.STRING,
+    pat_last_name: DataTypes.STRING,
+    mat_last_name: DataTypes.STRING,
     rut: DataTypes.STRING,
     phone: DataTypes.INTEGER,
     address: DataTypes.STRING,
     email: DataTypes.STRING,
     password: DataTypes.STRING,
-    account_type: DataTypes.INTEGER,
     verification_code: DataTypes.STRING,
-    status: DataTypes.INTEGER,
+    status: DataTypes.TINYINT,
     creation_date: DataTypes.DATE,
     last_access: DataTypes.DATE,
-    department_id: DataTypes.INTEGER,
     rol_id: DataTypes.INTEGER,
+    study_plan_id: DataTypes.INTEGER,
   },
   {
     sequelize,

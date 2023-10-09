@@ -7,7 +7,8 @@ export class CareerModule  {
 
     static async index(req: Request, res: Response){
         try {
-            
+            const prueba = await User.findAll();
+            console.log("aprobadooooooooooooooooooooooooooooooooooo")
             const carrerData = await Career.findAll({
                 attributes: {
                     include: [
@@ -48,6 +49,9 @@ export class CareerModule  {
         try {
             const { id } = req.params;
             let options = lazyTable(req.body);
+            console.log('------------------------------------')
+            console.log(req.body)
+            console.log(id)
             options.include = [
                 {
                     model: User,
@@ -87,7 +91,7 @@ export class CareerModule  {
                     response: []
                 })
             }
-
+            console.log(careerPracticesData)
             return res.status(200).json({
                 message: "Successfuly query",
                 response: {

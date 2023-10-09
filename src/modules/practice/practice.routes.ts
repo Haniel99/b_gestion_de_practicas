@@ -6,8 +6,7 @@ import { existPracticeById } from "../../helpers/databasevalidator";
 const router = Router();
 
 router.post("/load-data",
-  [tokenValidator],
-  upload.single("practice-data"),
+  upload.single("file"),
   PracticeModule.loadData
 );
 

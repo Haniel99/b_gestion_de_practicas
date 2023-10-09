@@ -3,6 +3,6 @@ export const routes = [
     "user",
     "practice",
     "report",
-    "department",
-    "career"
+    "career",
+    "upload_history"
 ];

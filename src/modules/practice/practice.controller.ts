@@ -4,7 +4,6 @@ import { errorHandler, excelToJson } from "../../helpers";
 import { IUser, IExcel, Request, Response } from "../../interfaces";
 
 import {
-  Department,
   Establishment,
   Practice,
   User,
@@ -21,18 +20,18 @@ export class PracticeModule {
           message: "No file received",
         });
       }
-      const excelData = await excelToJson(req.file.buffer);
-      let practices: IUser[] = [];
+      //const excelData = await excelToJson(req.file.buffer);
+      /* let practices: IUser[] = [];
       excelData.data.forEach((element: IExcel) => {
          
       });
 
-      const queryResult = await Practice.bulkCreate([]);
+      const queryResult = await Practice.bulkCreate([]); */
 
       return res.status(200).json({
         status: true,
         message: "file saved successfully",
-        response: excelData,
+        //response: excelData,
       });
     } catch (error) {
       errorHandler(res, error);
@@ -45,10 +44,6 @@ export class PracticeModule {
       // 
       const queryResult = await Practice.findByPk(id, {
         include: [
-          {
-            model: Department,
-            as: "department",
-          },
           {
             model: Establishment,
             as: "establishment",
