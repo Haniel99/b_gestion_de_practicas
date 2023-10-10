@@ -7,6 +7,7 @@ import {
   Career,
   Establishment,
   Practice,
+  Subject,
   User,
 } from "../../app/app.associatios";
 
@@ -106,7 +107,22 @@ export class PracticeModule {
         include: [
           {
             model: Practice,
-            as: "practices"
+            as: "practices",
+            include: [
+              {
+                model: Subject,
+                as: "subject"
+              },
+              {
+                model: User,
+                as: "student"
+              },
+              {
+                model: Establishment,
+                as: "establishment"
+              }
+
+            ]
           }
         ]
       });
