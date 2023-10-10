@@ -4,6 +4,7 @@ import { errorHandler, excelToJson } from "../../helpers";
 import { IUser, IExcel, Request, Response } from "../../interfaces";
 
 import {
+  Career,
   Establishment,
   Practice,
   User,
@@ -11,32 +12,6 @@ import {
 
 export class PracticeModule {
   constructor() {}
-
-  static async loadData(req: Request, res: Response) {
-    try {
-      if (!req.file) {
-        return res.status(400).json({
-          status: false,
-          message: "No file received",
-        });
-      }
-      //const excelData = await excelToJson(req.file.buffer);
-      /* let practices: IUser[] = [];
-      excelData.data.forEach((element: IExcel) => {
-         
-      });
-
-      const queryResult = await Practice.bulkCreate([]); */
-
-      return res.status(200).json({
-        status: true,
-        message: "file saved successfully",
-        //response: excelData,
-      });
-    } catch (error) {
-      errorHandler(res, error);
-    }
-  }
 
   static async view(req: Request, res: Response) {
     try {
@@ -115,6 +90,35 @@ export class PracticeModule {
       
     } catch (error) {
       
+    }
+  }
+
+  static async practicesCordinator(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+
+      console.log(id)
+      
+      const practices = await Career.findOne({
+        where: {
+          user_id: id
+        },
+        include: [
+          {
+            model: Practice,
+            as: "practices"
+          }
+        ]
+      });
+      
+
+      return res.status(200).json({
+        status: true,
+        message: "file saved successfully",
+        response: practices,
+      });
+    } catch (error) {
+      errorHandler(res, error);
     }
   }
 
