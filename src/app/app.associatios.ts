@@ -60,6 +60,10 @@ Practice.belongsTo(Subject, { foreignKey: "subject_id", as: "subject" });
 StudyPlan.hasMany(Subject, { foreignKey: "study_plan_id", as: "subjects" });
 Subject.belongsTo(StudyPlan, { foreignKey: "study_plan_id", as: "studyPlan" });
 
+// Relacion carrera - plan de estudio (1-n)
+Career.hasMany(StudyPlan, { foreignKey: "career_id", as: "studyPlans" });
+StudyPlan.belongsTo(Career, { foreignKey: "career_id", as: "career" });
+
 
 export {
   User,

@@ -7,8 +7,6 @@ export class CareerModule  {
 
     static async index(req: Request, res: Response){
         try {
-            const prueba = await User.findAll();
-            console.log("aprobadooooooooooooooooooooooooooooooooooo")
             const carrerData = await Career.findAll({
                 attributes: {
                     include: [
@@ -26,7 +24,8 @@ export class CareerModule  {
                         as: "coordinator",
                         attributes: [
                             "name",
-                            "last_name"
+                            "pat_last_name",
+                            "mat_last_name"
                         ]
                     }
                 ],
