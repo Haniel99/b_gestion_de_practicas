@@ -1,5 +1,5 @@
 //Helpers
-import { errorHandler, excelToJson } from "../../helpers";
+import { errorHandler, excelToJson, lazyTable } from "../../helpers";
 //Interfaces
 import { IUser, IExcel, Request, Response } from "../../interfaces";
 
@@ -86,15 +86,76 @@ export class PracticeModule {
 
   }
 
-  static async excelPracticesData(req: Request, res: Response) {
+
+  static async practicesByCareerId(req: Request, res: Response) {
     try {
+      const { id } = req.params;
+      let opts = lazyTable(req.body);
+      opts.include = [
+          {
+            model: Practice,
+            as: "practices",
+            attributes: [
+              "id"
+            ],
+            include: [
+              {
+                model: Subject,
+                as: "subject",
+                attributes: [
+                  "id",
+                  "name",
+                  "practice_number"
+                ]
+              },
+              {
+                model: User,
+                as: "stundent",
+                attributes: [
+                  "id",
+                  "name",
+                  "pat_last_name",
+                  "mat_last_name",
+                  "rut",
+                  "check_digit"
+                ]
+              }
+            ]
+          }
+      ];
+
+      if(opts.where) {
+          opts.where.career_id = id;
+      } else {
+          opts.where = {
+              career_id : id
+          };
+      }
       
+      const careerPracticesData = await Practice.findAll(opts);
+      const countPractices = await Practice.count(opts);
+      const career = await Career.findByPk(id, { attributes: ["name"] });
+      
+      if(careerPracticesData.length === 0){
+          return res.status(404).json({
+              message: "No data found",
+              response: []
+          })
+      }
+      console.log(careerPracticesData)
+      return res.status(200).json({
+          message: "Successfuly query",
+          response: {
+              practices: careerPracticesData,
+              count: countPractices,
+              career: career}
+      });
     } catch (error) {
-      
+      errorHandler(res,error);
     }
   }
 
-  static async practicesCordinator(req: Request, res: Response) {
+  static async practicesByCordinatorId(req: Request, res: Response) {
     try {
       const { id } = req.params;
 

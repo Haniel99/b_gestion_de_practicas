@@ -1,17 +1,54 @@
 import { errorHandler, excelToJson, lazyTable } from "../../helpers";
 import { Request, Response } from "../../interfaces";
-import { Career, Establishment, Practice, StudyPlan, Subject, User } from "../../app/app.associatios";
+import { Career, Establishment, Practice, StudyPlan, Subject, UploadHistory, User } from "../../app/app.associatios";
 import sequelize from "../../configs/config"
 
 export class UploadHistoryModule  {
     constructor(){}
+
+    static async indexPaginado(req: Request, res: Response){
+        try {
+            const opts = lazyTable(req.body)
+            opts.attributes = ["id", "name", "file_type", "upload_date", "number_rows"];
+            opts.include = [
+                {
+                    model: User,
+                    as: "user",
+                    attributes: [
+                        "name",
+                        "pat_last_name",
+                        "mat_last_name"
+                    ]
+                }
+            ];
+
+            const files = await UploadHistory.findAndCountAll(opts);
+
+            return res.status(200).json({
+                message: "Data was loaded successfully",
+                response: files
+            });
+
+        } catch (error: any) {
+            return res.status(500).json({
+                msg: "Error en el servidor, comuniquese con el administrador",
+                error: error.message
+            });
+        }
+    }
 
     static async loadData(req: Request, res: Response){
         
         const t = await sequelize.transaction();
 
         try {
-            const { type } = req.body; 
+            const { type, name } = req.body; 
+
+            if (type < 0 || type > 3) {
+                return res.status(400).json({
+                    message: "Incorrect file type"
+                })
+            }
 
             if (!req.file) {
                 return res.status(400).json({
@@ -19,9 +56,9 @@ export class UploadHistoryModule  {
                 })
             }
 
-            const excelData = await excelToJson(req.file.buffer, type);
+            const excelData: any = await excelToJson(req.file.buffer, type);
             console.log(excelData)
-            if (excelData.length == 0) {
+            if (excelData.data.length == 0) {
                 return res.status(402).json({
                     message: "Excel formatting is incorrect"
                 });
@@ -33,7 +70,7 @@ export class UploadHistoryModule  {
             // type = 0: Archivo de estudiantes, type = 1: Archivo de establecimientos
             // type = 2: Archivo de practicas , type = 3: Archivo de asignaturas
             if (type == 0) {
-                for (let row of excelData) {
+                for (let row of excelData.data) {
                     const student: any = await User.findOne({
                         where: {
                             rut: row.rut
@@ -60,9 +97,8 @@ export class UploadHistoryModule  {
                         rowUpdated++;
                     }
                 };
-            }
-            else if (type == 1) {
-                for (const row of excelData) {
+            } else if (type == 1) {
+                for (const row of excelData.data) {
                     const establishment: any = await Establishment.findOne({
                         where: {
                             code: row.code
@@ -79,7 +115,7 @@ export class UploadHistoryModule  {
                     }
                 };        
             } else if (type == 2) {
-                for (const row of excelData) {
+                for (const row of excelData.data) {
                     // Filtramos los datos en: practica, asignatura, estudiante, establecimiento y supervisor
                     // Estudiante:
                     let student: any = await User.findOne({
@@ -90,7 +126,7 @@ export class UploadHistoryModule  {
                     });
                     const studyPlan: any = await StudyPlan.findOne({
                         where: {
-                            code: row.study_plan
+                            code: row.code_study_plan
                         },
                         transaction: t
                     });
@@ -186,7 +222,45 @@ export class UploadHistoryModule  {
                     }
                     
                 }; 
+            } else if (type == 3) {
+                for (const row of excelData.data) {
+                    const studyPlan: any = await StudyPlan.findOne({
+                        where: {
+                            code: row.code_study_plan
+                        },
+                        transaction: t
+                    });
+                    // No se encontro el plan de estudio
+                    if (!studyPlan) {
+                        throw new Error("Incorrect Study Plan");
+                    }
+                    const subjectData = {
+                        name: row.name,
+                        code: row.code_subject,
+                        description: row.description,
+                        practice_number: row.practice_number,
+                        total_hours: row.total_hours,
+                        start_date: row.start_date,
+                        end_date: row.end_date,
+                        study_plan_id: studyPlan.id
+                    };
+                    await Subject.create(subjectData, { transaction: t })
+                    rowCreated++;
+                };   
             }
+            
+            const fileData = {
+                name: name,
+                upload_date: new Date(),
+                file: req.file,
+                number_rows: excelData.numberRows,
+                file_type: (type == 0) ? "Estudiantes" : 
+                           (type == 1) ? "Establecimientos" : 
+                           (type == 2) ? "Practicas" :
+                           (type == 3) ? "Asignaturas" : null,
+                user_id: 1
+            };
+            await UploadHistory.create(fileData, { transaction: t })
 
             const commit = await t.commit();
 
@@ -196,21 +270,14 @@ export class UploadHistoryModule  {
                 rowUpdated: rowUpdated
             });
 
-        } catch (error) {
+        } catch (error: any) {
             const rollback = await t.rollback();
             console.error(error);
             return res.status(500).json({
-                msg: "Hable con el administrador",
-                error 
+                msg: "Error en el servidor, comuniquese con el administrador",
+                error: error.message
             });
         }
     }
 
-    static async index(req: Request, res: Response){
-        try {
-            
-        } catch (error) {
-            
-        }
-    }
 }
