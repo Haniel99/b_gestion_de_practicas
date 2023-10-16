@@ -7,9 +7,11 @@ import {
   Career,
   Establishment,
   Practice,
+  StudyPlan,
   Subject,
   User,
 } from "../../app/app.associatios";
+import { Op } from "sequelize";
 
 export class PracticeModule {
   constructor() {}
@@ -87,71 +89,108 @@ export class PracticeModule {
   }
 
 
+      /*   where: {
+          [Op.and]: [
+            {
+              '$practices.student.name$': {
+                [Op.substring]: "a"
+              }
+            }
+          ]
+        }, */
+        /* where: { [Op.and]: [ { name: { [Op.substring]: "his" } } ] }, */
+      
+
+
   static async practicesByCareerId(req: Request, res: Response) {
     try {
       const { id } = req.params;
       let opts = lazyTable(req.body);
+      opts.attributes = [
+        "id",
+        "status"
+      ]
       opts.include = [
           {
-            model: Practice,
-            as: "practices",
+            model: User,
+            as: "student",
             attributes: [
-              "id"
+              "name",
+              "pat_last_name",
+              "mat_last_name",
+              "rut",
+              "check_digit"
+            ]
+          },
+          {
+            model: Subject,
+            as: "subject",
+            attributes: [
+              "name",
+              "practice_number"
             ],
             include: [
               {
-                model: Subject,
-                as: "subject",
+                model: StudyPlan,
+                as: "studyPlan",
                 attributes: [
-                  "id",
-                  "name",
-                  "practice_number"
-                ]
-              },
-              {
-                model: User,
-                as: "stundent",
-                attributes: [
-                  "id",
-                  "name",
-                  "pat_last_name",
-                  "mat_last_name",
-                  "rut",
-                  "check_digit"
+                  "year"
                 ]
               }
+            ]
+            
+          },
+          {
+            model: Establishment,
+            as: "establishment",
+            attributes: [
+              "name"
             ]
           }
       ];
 
+      const career = await Career.findByPk(id, { attributes: ["id", "name", "code"] });
+
+      if(!career){
+        return res.status(404).json({
+            message: "No data found",
+            response: []
+        })
+      }
+
       if(opts.where) {
           opts.where.career_id = id;
+          opts.where.status = null
       } else {
           opts.where = {
-              career_id : id
+              career_id: id,
+              status: null
           };
       }
+
+      const practices = await Practice.findAndCountAll(opts);
       
-      const careerPracticesData = await Practice.findAll(opts);
-      const countPractices = await Practice.count(opts);
-      const career = await Career.findByPk(id, { attributes: ["name"] });
-      
-      if(careerPracticesData.length === 0){
+      if(practices.rows.length == 0){
           return res.status(404).json({
               message: "No data found",
               response: []
           })
       }
-      console.log(careerPracticesData)
+
       return res.status(200).json({
           message: "Successfuly query",
           response: {
-              practices: careerPracticesData,
-              count: countPractices,
-              career: career}
+              career: career,
+              count: practices.count,
+              rows: practices.rows
+          }
       });
-    } catch (error) {
-      errorHandler(res,error);
+    } catch (error: any) {
+      console.error(error)
+            return res.status(500).json({
+                msg: "Error en el servidor, comuniquese con el administrador",
+                error: error.message
+            });
     }
   }
 

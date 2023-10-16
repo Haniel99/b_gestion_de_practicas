@@ -8,7 +8,8 @@ export interface IActionsLazy {
     sort_by: string,
     filter: boolean,
     filters:  IOptionFilter[],
-    size: number
+    size: number,
+    search: boolean
 }
 
 interface IOptionFilter {

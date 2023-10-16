@@ -194,6 +194,8 @@ export class UploadHistoryModule  {
                         transaction: t
                     });
 
+                    //console.log("esta es la asignatura-------------", subject)
+
                     // Practica
                     const practice: any = await Practice.findOne({
                         where: {
@@ -238,12 +240,16 @@ export class UploadHistoryModule  {
                         name: row.name,
                         code: row.code_subject,
                         description: row.description,
+                        type: row.type,
                         practice_number: row.practice_number,
                         total_hours: row.total_hours,
                         start_date: row.start_date,
                         end_date: row.end_date,
                         study_plan_id: studyPlan.id
                     };
+                    
+                    console.log(subjectData)
+
                     await Subject.create(subjectData, { transaction: t })
                     rowCreated++;
                 };   
@@ -258,7 +264,7 @@ export class UploadHistoryModule  {
                            (type == 1) ? "Establecimientos" : 
                            (type == 2) ? "Practicas" :
                            (type == 3) ? "Asignaturas" : null,
-                user_id: 1
+                user_id: 4
             };
             await UploadHistory.create(fileData, { transaction: t })
 

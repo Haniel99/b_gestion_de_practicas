@@ -44,6 +44,7 @@ const translations = [
     NOMBRE: "name",
     CODIGO_ASIGNATURA: "code_subject",
     DESCRIPCION:"description",
+    TIPO: "type",
     NUMERO_PRACTICA: "practice_number",
     TOTAL_HORAS: "total_hours",
     FECHA_INICIO: "start_date",

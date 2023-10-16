@@ -6,7 +6,7 @@ StudyPlan.init(
   {
     name: DataTypes.STRING, 
     code: DataTypes.STRING,
-    año: DataTypes.INTEGER,
+    year: DataTypes.INTEGER,
     career_id: DataTypes.INTEGER
   },
   {

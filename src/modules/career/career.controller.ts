@@ -9,6 +9,8 @@ export class CareerModule  {
     static async index(req: Request, res: Response){
         try {
             const opts = lazyTable(req.body);
+            console.log(opts)
+            console.log(opts.where)
             opts.attributes = {
                 include: [
                     [
