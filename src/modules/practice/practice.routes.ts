@@ -25,6 +25,6 @@ router.put("/update/:id",
   PracticeModule.update
 );
 
-router.get("/practices-coordinator/:id", [], PracticeModule.practicesCordinator)
+router.get("/practices-coordinator/:id", [], PracticeModule.practicesByCordinatorId)
 
 export { router };

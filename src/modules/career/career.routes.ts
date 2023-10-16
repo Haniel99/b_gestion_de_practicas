@@ -7,11 +7,6 @@ import { check } from "express-validator";
 
 const router = Router();
 
-router.get("/index", [  ], CareerModule.index);
-router.post("/practices/:id", [ 
-    /* check("id", "El identificador debe ser de tipo numerico").isNumeric(),
-    check("id").custom(existCareerById),
-    valdiateFields */
- ], CareerModule.careerPractices );
+router.post("/index", [  ], CareerModule.index);
 
 export { router };

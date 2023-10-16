@@ -7,9 +7,13 @@ import { check } from "express-validator";
 
 const router = Router();
 
-router.post("/load-data", [ 
+router.post("/index-paginado", [
+
+], UploadHistoryModule.indexPaginado);
+
+router.post("/load-data", [
     upload.single("file"),
- ], UploadHistoryModule.loadData);
+], UploadHistoryModule.loadData);
 
 
 export { router };
