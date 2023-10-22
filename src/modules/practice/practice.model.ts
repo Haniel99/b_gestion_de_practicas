@@ -6,8 +6,8 @@ Practice.init(
   {
     code: DataTypes.STRING,
     status: DataTypes.TINYINT,
-    start_date: DataTypes.DATE,
-    end_date: DataTypes.DATE,
+    start_date: DataTypes.DATEONLY,
+    end_date: DataTypes.DATEONLY,
     career_id: DataTypes.INTEGER,
     student_id: DataTypes.INTEGER,
     supervisor_id: DataTypes.INTEGER,

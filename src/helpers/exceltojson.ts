@@ -1,4 +1,6 @@
 import ExcelJS from "exceljs";
+const moment = require('moment');
+require('moment/locale/es');
 
 const translations = [
   // Estudiantes
@@ -15,9 +17,24 @@ const translations = [
   },
   // Establecimientos
   {
-    nombre: "name",
-    codigo: "code",
-    direccion: "address"
+    LOCAL_EDUCACIONAL: "code_establishment",
+    UNIDAD_EDUCATIVA: "educational_unit",
+    ANYO_PROCESO: "year_process",
+    NOMBRE_OFICIAL: "name",
+    CODIGO_REGION: "code_region",
+    CODIGO_PROVINCIA: "code_province",
+    CODIGO_COMUNA: "code_commune",
+    CODIGO_POSTAL: "code_postal",
+    FONO_PRINCIPAL: "phone",
+    FAX: "fax",
+    EMAIL: "email",
+    DIRECCION: "address",
+    RAMA_EDUCACIONAL: "educational_branch",
+    REGIMEN: "regime",
+    DEPENDENCIA: "dependence",
+    GRUPO_DEPENDENCIA: "group_dependence",
+    RBD: "rbd",
+    COD_ENS: "code_ens"
   },
   // Practicas
   {
@@ -52,6 +69,8 @@ const translations = [
     CODIGO_PLAN_ESTUDIO: "code_study_plan",
   }
 ];
+
+moment.locale('es');
 
 const excelToJson = async (buffer: Buffer, fileType: number) => {
   let excelTitles: any = [];
@@ -102,7 +121,18 @@ const excelToJson = async (buffer: Buffer, fileType: number) => {
         let rowObject: any = {}
           for (let i = 0; i < excelTitles.length; i++) {
               let title = excelTitles[i];
-              let value = rowValues[i] ? rowValues[i] : null;
+              let value = rowValues[i] != null? rowValues[i] : null;
+
+              if (title === 'address' && rowNumber < 50) {
+                console.log(value)
+              }
+
+              if (title === 'address' && moment(value, moment.ISO_8601, true).isValid()) {
+                value = value.toISOString().split('T')[0];
+                value = moment(value).format('DD [de] MMMM [#]YYYY');
+                value = value.toUpperCase();
+              }
+
               rowObject[title] = value;
           }
           excelData.push(rowObject);

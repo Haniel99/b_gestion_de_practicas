@@ -127,6 +127,7 @@ export class PracticeModule {
             as: "subject",
             attributes: [
               "name",
+              "type",
               "practice_number"
             ],
             include: [
@@ -160,11 +161,11 @@ export class PracticeModule {
 
       if(opts.where) {
           opts.where.career_id = id;
-          opts.where.status = null
+          opts.where.status = 1
       } else {
           opts.where = {
               career_id: id,
-              status: null
+              status: 1
           };
       }
 

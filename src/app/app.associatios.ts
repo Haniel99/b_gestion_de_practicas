@@ -7,6 +7,11 @@ import Payment from "../modules/payment/payment.model";
 import UploadHistory from "../modules/upload_history/upload_history.model";
 import Career from "../modules/career/career.model";
 import StudyPlan from "../modules/career/study_plan.model";
+import EducationalBranch from "../modules/establishment/educational_branch.model";
+import EstablishmentBranch from "../modules/establishment/establishment_branch.model";
+import Commune from "../modules/establishment/commune.model";
+import Province from "../modules/establishment/province.model";
+import Region from "../modules/establishment/region.model";
 
 // Relacion rol - usuario (1-n)
 Rol.hasMany(User, { foreignKey: "rol_id", as: "users" });
@@ -44,6 +49,10 @@ Practice.belongsTo(User, { foreignKey: "workshop_teacher_id", as: "workshopteach
 Establishment.hasMany(Practice, { foreignKey: "establishment_id", as: "practices" });
 Practice.belongsTo(Establishment, { foreignKey: "establishment_id", as: "establishment" });
 
+// Relacion establecimiento - rama educacional (n-m)
+Establishment.belongsToMany(EducationalBranch, { through: EstablishmentBranch, foreignKey: "establishment_id", as: "educationalBranchs" });
+EducationalBranch.belongsToMany(Establishment, { through: EstablishmentBranch, foreignKey: "educational_branch_id", as: "establishments" });
+
 // Relacion bonos - practicas (1-n)
 Payment.hasMany(Practice, { foreignKey: "payment_info_id", as: "practices" });
 Practice.belongsTo(Payment, { foreignKey: "payment_info_id", as: "payment" });
@@ -64,6 +73,18 @@ Subject.belongsTo(StudyPlan, { foreignKey: "study_plan_id", as: "studyPlan" });
 Career.hasMany(StudyPlan, { foreignKey: "career_id", as: "studyPlans" });
 StudyPlan.belongsTo(Career, { foreignKey: "career_id", as: "career" });
 
+// Relacion comuna - establecimiento (1-n)
+Commune.hasMany(Establishment, { foreignKey: "commune_id", as: "establishments" });
+Establishment.belongsTo(Commune, { foreignKey: "commune_id", as: "commune" });
+
+// Relacion provincia - comuna (1-n)
+Province.hasMany(Commune, { foreignKey: "province_id", as: "communes" });
+Commune.belongsTo(Province, { foreignKey: "province_id", as: "province" });
+
+// Relacion region - provincia (1-n)
+Region.hasMany(Province, { foreignKey: "region_id", as: "provinces" });
+Province.belongsTo(Region, { foreignKey: "region_id", as: "region" });
+
 
 export {
   User,
@@ -74,5 +95,10 @@ export {
   Payment,
   UploadHistory,
   Career,
-  StudyPlan
+  StudyPlan,
+  EducationalBranch,
+  EstablishmentBranch,
+  Commune,
+  Province,
+  Region
 };

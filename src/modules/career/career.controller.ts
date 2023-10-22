@@ -35,6 +35,7 @@ export class CareerModule  {
                     ]
                 }
             ];
+            opts.distinct = true;
             
             const careers = await Career.findAndCountAll(opts);
 
@@ -46,7 +47,7 @@ export class CareerModule  {
 
             return res.status(200).json({
                 message: "Data was loaded successfully",
-                response: careers
+                response: careers,
             });
 
         } catch (error: any) {
