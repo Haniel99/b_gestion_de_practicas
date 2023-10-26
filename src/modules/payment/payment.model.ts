@@ -5,7 +5,7 @@ class Payment extends Model { }
 Payment.init({
     account_number: DataTypes.STRING,
     bank: DataTypes.STRING,
-    transpotation_amount: DataTypes.INTEGER,
+    transportation_amount: DataTypes.INTEGER,
     food_amount: DataTypes.INTEGER
 }, {
     sequelize,

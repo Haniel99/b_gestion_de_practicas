@@ -1,7 +1,9 @@
 import { errorHandler, excelToJson, lazyTable } from "../../helpers";
 import { IUser, Request, Response } from "../../interfaces";
-import { Career, Establishment, Practice, StudyPlan, Subject, UploadHistory, User, Commune, EducationalBranch, EstablishmentBranch } from "../../app/app.associatios";
+import { Career, Establishment, Practice, StudyPlan, Subject, UploadHistory, User, Commune, EducationalBranch, EstablishmentBranch, Payment } from "../../app/app.associatios";
 import sequelize from "../../configs/config"
+import ExcelJS from "exceljs";
+const { Op } = require('sequelize');
 import { IStudyPlan } from "../../interfaces/IModules/study_plan.interface";
 
 export class UploadHistoryModule  {
@@ -83,7 +85,7 @@ export class UploadHistoryModule  {
                 });
 
                 if (!studyPlan) {
-                    throw new Error("Unknown study plan code");
+                    throw new Error(`Unknown study plan code: ${row.study_plan}` );
                 }
 
                 const studentData = {
@@ -169,7 +171,7 @@ export class UploadHistoryModule  {
                         transaction: t
                     })
                     if (!commune) {
-                        throw new Error("Unknown commune code");
+                        throw new Error(`Unknown commune code: ${row.code_commune}`);
                     }
 
                     let establishment: any = await Establishment.findOne({
@@ -215,7 +217,7 @@ export class UploadHistoryModule  {
                     })
 
                     if (!educational_branch) {
-                        throw new Error("Unknown educational branch code");
+                        throw new Error(`Unknown educational branch code: ${row.educational_branch}`);
                     }
                     
                     //console.log(establishment.code, " ---- ", educational_branch.code, " id:", educational_branch.id)
@@ -333,7 +335,7 @@ export class UploadHistoryModule  {
                     transaction: t
                 });
                 if (!studyPlan) {
-                    throw new Error("Unknown study plan code");
+                    throw new Error(`Unknown study plan code: ${row.code_study_plan}`);
                 }
 
                 const studentData = {
@@ -378,7 +380,7 @@ export class UploadHistoryModule  {
                     transaction: t
                 });
                 if (!establishment) {
-                    throw new Error("Unknown establishment code");
+                    throw new Error(`Unknown establishment code: ${row.code_establishment}`);
                 }
 
                 const subject: any = await Subject.findOne({
@@ -389,18 +391,13 @@ export class UploadHistoryModule  {
                         {
                             model: StudyPlan,
                             as: "studyPlan",
-                            include: [
-                                {
-                                    model: Career,
-                                    as: "career"
-                                }
-                            ]
                         }
                     ],
                     transaction: t
                 });
+
                 if (!subject) {
-                    throw new Error("Unknown subject code");
+                    throw new Error(`Unknown subject code: ${row.code_subject}`);
                 }
 
                 const practice: any = await Practice.findOne({
@@ -417,13 +414,13 @@ export class UploadHistoryModule  {
                 if (row.end_date) {
                     row.end_date = row.end_date.toISOString().split('T')[0];
                 }
-
+                
                 const practiceData = {
                     code: row.code_practice,
                     status: row.status,
                     start_date: row.start_date,
                     end_date: row.end_date,
-                    career_id: subject.studyPlan.career.id,
+                    career_id: subject.studyPlan.career_id,
                     student_id: student.id,
                     supervisor_id: supervisor.id,
                     establishment_id: establishment.id,
@@ -507,7 +504,7 @@ export class UploadHistoryModule  {
                 });
 
                 if (!studyPlan) {
-                    throw new Error("Unknown study plan code");
+                    throw new Error(`Unknown study plan code: ${row.code_study_plan}`);
                 }
 
                 // Conversion de fechas

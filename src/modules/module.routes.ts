@@ -4,5 +4,6 @@ export const routes = [
     "practice",
     "report",
     "career",
-    "upload_history"
+    "upload_history",
+    "worksheet"
 ];
