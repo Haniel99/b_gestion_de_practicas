@@ -1,5 +1,5 @@
-import { Router } from "express";
-import { tokenValidator, valdiateFields } from "../../middlewares";
+import { Router, RequestHandler } from "express";
+import { tokenValidator, validateFields } from "../../middlewares";
 import { check } from "express-validator";
 import { PracticeModule } from "./practice.controller";
 import { existPracticeById } from "../../helpers/databasevalidator";
@@ -13,7 +13,7 @@ router.get("/view/:id",
     tokenValidator,
     check("id").isNumeric(),
     check("id").custom(existPracticeById),
-    valdiateFields,
+    validateFields,
   ],
   PracticeModule.view
 );
@@ -28,7 +28,5 @@ router.put("/update/:id",
 router.get("/practices-coordinator/:id", [], PracticeModule.practicesByCordinatorId);
 
 router.post("/practices-career/:id", [], PracticeModule.practicesByCareerId)
-
-
 
 export { router };

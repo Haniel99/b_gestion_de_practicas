@@ -46,7 +46,7 @@ User.hasMany(Practice, { foreignKey: "workshop_teacher_id", as: "workshopTeacher
 Practice.belongsTo(User, { foreignKey: "workshop_teacher_id", as: "workshopteacher" });
 
 // Relacion establecimiento - practica (1-n)
-Establishment.hasMany(Practice, { foreignKey: "establishment_id", as: "practices" });
+Establishment.hasMany(Practice, { foreignKey: "establishment_id", as: "establishments" });
 Practice.belongsTo(Establishment, { foreignKey: "establishment_id", as: "establishment" });
 
 // Relacion establecimiento - rama educacional (n-m)

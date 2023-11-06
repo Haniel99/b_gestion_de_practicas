@@ -1,19 +1,17 @@
 import { Request, Response } from "../../interfaces/express.interfaces";
 import errorHandler from "../../helpers/errorhandler";
 import { Rol, User } from "../../app/app.associatios";
-
 export default class UserModule {
   constructor() {}
   static async index(req: Request, res: Response) {
     try {
-      
       const response = await User.findAll({
         include: [
-            {
-                model: Rol,
-                as: "rol"
-            }
-        ]
+          {
+            model: Rol,
+            as: "rol",
+          },
+        ],
       });
       if (!response) {
         return res.status(200).json({
@@ -29,18 +27,81 @@ export default class UserModule {
       });
     } catch (error) {
       //Manejador de errores
-      return errorHandler(
-        res,
-        error
-      );
+      return errorHandler(res, error);
     }
   }
-
+  static async rol(req: Request, res: Response){
+    try {
+      let id: any = req.user;
+      const user: any = await User.findByPk(id, {
+        include: [
+          {
+            model: Rol,
+            as: "rol",
+          },
+        ],
+      });
+      return res.json({
+        response: user.rol.name
+      })
+    } catch (error) {
+      errorHandler(res, error);
+    }
+  }
+  static async isCoordinator(req: Request, res: Response) {
+    try {
+      let id: any = req.user;
+      const user: any = await User.findByPk(id, {
+        include: [
+          {
+            model: Rol,
+            as: "rol",
+          },
+        ],
+      });
+      if (user.rol_id !== 2) {
+        return res.json({
+          status: false,
+          response: user.rol.name,
+        });
+      }
+      return res.json({
+        status: true,
+        response: user.rol.name,
+      });
+    } catch (error) {
+      errorHandler(res, error);
+    }
+  }
+  static async isAdmin(req: Request, res: Response) {
+    try {
+      let id: any = req.user;
+      const user: any = await User.findByPk(id, {
+        include: [
+          {
+            model: Rol,
+            as: "rol",
+          },
+        ],
+      });
+      if (user.rol_id !== 1) {
+        return res.json({
+          status: false,
+          response: user.rol.name,
+        });
+      }
+      return res.json({
+        status: true,
+        response: user.rol.name,
+      });
+    } catch (error) {
+      errorHandler(res, error);
+    }
+  }
   static async view(req: Request, res: Response) {
     try {
-        
     } catch (error) {
-        errorHandler(res, error);
+      errorHandler(res, error);
     }
   }
 
@@ -61,7 +122,17 @@ export default class UserModule {
 
   static async login(req: Request, res: Response) {
     try {
-    } catch (error) {}
+      const token = req.user;
+      const successMessage = `
+        <script>
+          window.opener.postMessage({ success: true, token: "${token}" }, '*');
+          window.close();
+        </script>
+      `;
+      res.send(successMessage);
+    } catch (error) {
+      errorHandler(res);
+    }
   }
   static async desactive(req: Request, res: Response) {
     try {
