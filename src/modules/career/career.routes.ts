@@ -7,6 +7,6 @@ import { check } from "express-validator";
 
 const router = Router();
 
-router.post('/index', [  ], CareerModule.index);
+router.post('/index', [ tokenValidator ], CareerModule.index);
 
 export { router };

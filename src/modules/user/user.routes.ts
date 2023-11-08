@@ -41,6 +41,6 @@ router.get("/auth/google/failture", async (req: Request, res: Response) => {
 
 router.get("/is-admin", tokenValidator, UserModule.isAdmin);
 router.get("/is-coordinator", tokenValidator, UserModule.isCoordinator);
-router.get("/rol",tokenValidator,UserModule.rol )
+router.get("/rol",tokenValidator,UserModule.rol );
 router.put("/desactive", []);
 export { router };
