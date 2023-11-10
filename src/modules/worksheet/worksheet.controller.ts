@@ -17,6 +17,187 @@ import formatDate from "../../helpers/formattodate";
 export class WorksheetModule {
   constructor() {}
 
+  static async dataWorksheet(req: Request, res: Response){
+    try {
+        const { careers, practiceNumbers } = req.body;
+
+        const data = await Career.findAll({
+            attributes: [
+                "id",
+                "code",
+                "name"
+            ],
+            where: {
+                code: {
+                    [Op.or]: careers
+                }
+            },
+            include: [
+                {
+                    attributes: [
+                        "id",
+                        "status"
+                    ],
+                    model: Practice,
+                    as: "practices",
+                    where: {
+                        status: 1
+                    },
+                    include: [
+                        {
+                            attributes: [
+                                "name",
+                                "pat_last_name",
+                                "mat_last_name",
+                                "rut",
+                                "check_digit"
+                            ],
+                            model: User,
+                            as: "student"
+                        },
+                        {
+                            attributes: [
+                                "name",
+                                "code",
+                                "type",
+                                "practice_number",
+                                "start_date",
+                                "end_date"
+                            ],
+                            model: Subject,
+                            as: "subject",
+                            where: {
+                                type: "Profesional",
+                                practice_number: {
+                                    [Op.or]: practiceNumbers
+                                }
+                            },
+                            order: [
+                                ['practice_number', 'ASC']
+                            ],
+                        },
+                        {
+                            attributes: [
+                                "account_number",
+                                "bank",
+                                "transportation_amount",
+                                "food_amount"
+                            ],
+                            model: Payment,
+                            as: "payment"
+                        },
+                        {
+                            attributes: [
+                                "name"
+                            ],
+                            model: Establishment,
+                            as: "establishment",
+                            include: [
+                                {
+                                    attributes: [
+                                        "name"
+                                    ],
+                                    model: Commune,
+                                    as: "commune"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            order: [
+                ['name', 'ASC']
+            ],
+            raw: true,
+            nest: true,
+        })
+
+        // Separar en arreglos por cada asignatura
+        let numberStudent = 1;
+        let indiceArreglo = 0;
+        let arrayOld = "";
+        let dataExcel: any[] = [];
+        let food_total = 0;
+        let transportation_total = 0;
+        data.forEach((row: any, index: number) => {
+            const code = row.practices.subject.code;
+            // Crea un arreglo
+            if (code != arrayOld) {
+                //Agrega los totales
+                if (index != 0) {
+                    const previousArray = dataExcel[dataExcel.length - 1];
+                    previousArray.push({
+                        total: food_total + transportation_total,
+                        food_total: food_total,
+                        transportation_total: transportation_total
+                    })
+                    food_total = 0;
+                    transportation_total = 0;
+                }
+
+                dataExcel[indiceArreglo] = [];
+                numberStudent = 1;
+                arrayOld = code;
+                indiceArreglo++
+            }
+            
+            const rowExcel = {
+                data: [
+                    numberStudent,
+                    formatRut(row.practices.student.rut),
+                    row.practices.student.check_digit,
+                    `${row.practices.student.name} ${row.practices.student.pat_last_name} ${row.practices.student.mat_last_name}`,
+                    formatDate(row.practices.subject.start_date),
+                    formatDate(row.practices.subject.end_date),
+                    row.practices.establishment.name,
+                    row.practices.establishment.commune.name,
+                    row.practices.payment.account_number,
+                    row.practices.payment.bank,
+                    row.practices.payment.transportation_amount,
+                    row.practices.payment.food_amount,
+                    row.practices.payment.transportation_amount + row.practices.payment.food_amount,
+                ],
+                name_subject: row.practices.subject.name,
+                code_subject: row.practices.subject.code,
+                name_career: row.name,
+                code_career: row.code,
+            }
+
+            //Suma los totales
+            food_total += row.practices.payment.food_amount;
+            transportation_total += row.practices.payment.transportation_amount;
+
+            //Obtener ultimo elemento del arreglo
+            const lastArray = dataExcel[dataExcel.length - 1];
+            lastArray.push(rowExcel)
+            
+            //Agrega los totales para el ultimo dato
+            if(index == data.length - 1) {
+                lastArray.push({
+                    total: food_total + transportation_total,
+                    food_total: food_total,
+                    transportation_total: transportation_total
+                })
+            }
+            numberStudent++;
+        });
+        
+        return res.status(200).json({
+            message: "Successfuly query",
+            response: dataExcel
+        })
+
+
+    } catch (error: any) {
+        console.error(error)
+        return res.status(500).json({
+            msg: "Error en el servidor, comuniquese con el administrador",
+            error: error.message
+        });
+    }
+
+  }
+
   static async generateWorksheet(req: Request, res: Response){
     try {
         const { careers, practiceNumbers } = req.body;
@@ -155,6 +336,8 @@ export class WorksheetModule {
             lastArray.push(rowExcel)
             numberStudent++;
         });
+
+        console.log(rowsExcel);
 
         // Creacion del excel (libro y pagina)
         const workbook = new ExcelJS.Workbook();

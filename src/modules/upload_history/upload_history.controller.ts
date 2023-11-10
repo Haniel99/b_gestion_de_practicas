@@ -24,6 +24,9 @@ export class UploadHistoryModule  {
                     ]
                 }
             ];
+            opts.order = [
+                ['upload_date', 'DESC']
+            ]
 
             const files = await UploadHistory.findAndCountAll(opts);
 

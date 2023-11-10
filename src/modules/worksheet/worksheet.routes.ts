@@ -6,6 +6,8 @@ import { check } from "express-validator";
 
 const router = Router();
 
+router.post("/data-worksheet", [], WorksheetModule.dataWorksheet)
+
 router.post("/generate-worksheet", [], WorksheetModule.generateWorksheet)
 
 export { router };
