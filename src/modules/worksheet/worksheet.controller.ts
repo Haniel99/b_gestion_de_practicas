@@ -12,179 +12,181 @@ import { Op } from "sequelize";
 import formatRut from "../../helpers/formattorut";
 import ExcelJS from "exceljs";
 import formatDate from "../../helpers/formattodate";
+import formatMoney from "../../helpers/formattomoney";
 
 
 export class WorksheetModule {
   constructor() {}
 
+  /* [
+    { 
+        "code": "201",
+        "practiceNumbers": [ "1", "2" ]
+    },
+    { 
+        "code": "202",
+        "practiceNumbers": [ "1" ]
+    }
+] */
+
   static async dataWorksheet(req: Request, res: Response){
     try {
-        const { careers, practiceNumbers } = req.body;
+        const careers = req.body;
 
-        const data = await Career.findAll({
-            attributes: [
-                "id",
-                "code",
-                "name"
-            ],
-            where: {
-                code: {
-                    [Op.or]: careers
-                }
-            },
-            include: [
-                {
+        let data: any = {};
+
+        for (const carrer of careers) {
+            const { code, practiceNumbers } = carrer;
+
+            for (const number of practiceNumbers) {
+                // Obtener los registros de una carrera para cierto numero de practica profesional
+                const carrerData = await Career.findAll({
                     attributes: [
                         "id",
-                        "status"
+                        "code",
+                        "name"
                     ],
-                    model: Practice,
-                    as: "practices",
                     where: {
-                        status: 1
+                        code: code
                     },
                     include: [
                         {
                             attributes: [
-                                "name",
-                                "pat_last_name",
-                                "mat_last_name",
-                                "rut",
-                                "check_digit"
+                                "id",
+                                "status"
                             ],
-                            model: User,
-                            as: "student"
-                        },
-                        {
-                            attributes: [
-                                "name",
-                                "code",
-                                "type",
-                                "practice_number",
-                                "start_date",
-                                "end_date"
-                            ],
-                            model: Subject,
-                            as: "subject",
+                            model: Practice,
+                            as: "practices",
                             where: {
-                                type: "Profesional",
-                                practice_number: {
-                                    [Op.or]: practiceNumbers
-                                }
+                                status: 1
                             },
-                            order: [
-                                ['practice_number', 'ASC']
-                            ],
-                        },
-                        {
-                            attributes: [
-                                "account_number",
-                                "bank",
-                                "transportation_amount",
-                                "food_amount"
-                            ],
-                            model: Payment,
-                            as: "payment"
-                        },
-                        {
-                            attributes: [
-                                "name"
-                            ],
-                            model: Establishment,
-                            as: "establishment",
                             include: [
+                                {
+                                    attributes: [
+                                        "name",
+                                        "pat_last_name",
+                                        "mat_last_name",
+                                        "rut",
+                                        "check_digit"
+                                    ],
+                                    model: User,
+                                    as: "student"
+                                },
+                                {
+                                    attributes: [
+                                        "name",
+                                        "code",
+                                        "type",
+                                        "practice_number",
+                                        "start_date",
+                                        "end_date"
+                                    ],
+                                    model: Subject,
+                                    as: "subject",
+                                    where: {
+                                        type: "Profesional",
+                                        practice_number: number
+                                    },
+                                    order: [
+                                        ['practice_number', 'ASC']
+                                    ],
+                                },
+                                {
+                                    attributes: [
+                                        "account_number",
+                                        "bank",
+                                        "transportation_amount",
+                                        "food_amount"
+                                    ],
+                                    model: Payment,
+                                    as: "payment"
+                                },
                                 {
                                     attributes: [
                                         "name"
                                     ],
-                                    model: Commune,
-                                    as: "commune"
+                                    model: Establishment,
+                                    as: "establishment",
+                                    include: [
+                                        {
+                                            attributes: [
+                                                "name"
+                                            ],
+                                            model: Commune,
+                                            as: "commune"
+                                        }
+                                    ]
                                 }
                             ]
                         }
-                    ]
-                }
-            ],
-            order: [
-                ['name', 'ASC']
-            ],
-            raw: true,
-            nest: true,
-        })
-
-        // Separar en arreglos por cada asignatura
-        let numberStudent = 1;
-        let indiceArreglo = 0;
-        let arrayOld = "";
-        let dataExcel: any[] = [];
-        let food_total = 0;
-        let transportation_total = 0;
-        data.forEach((row: any, index: number) => {
-            const code = row.practices.subject.code;
-            // Crea un arreglo
-            if (code != arrayOld) {
-                //Agrega los totales
-                if (index != 0) {
-                    const previousArray = dataExcel[dataExcel.length - 1];
-                    previousArray.push({
-                        total: food_total + transportation_total,
-                        food_total: food_total,
-                        transportation_total: transportation_total
-                    })
-                    food_total = 0;
-                    transportation_total = 0;
-                }
-
-                dataExcel[indiceArreglo] = [];
-                numberStudent = 1;
-                arrayOld = code;
-                indiceArreglo++
-            }
-            
-            const rowExcel = {
-                data: [
-                    numberStudent,
-                    formatRut(row.practices.student.rut),
-                    row.practices.student.check_digit,
-                    `${row.practices.student.name} ${row.practices.student.pat_last_name} ${row.practices.student.mat_last_name}`,
-                    formatDate(row.practices.subject.start_date),
-                    formatDate(row.practices.subject.end_date),
-                    row.practices.establishment.name,
-                    row.practices.establishment.commune.name,
-                    row.practices.payment.account_number,
-                    row.practices.payment.bank,
-                    row.practices.payment.transportation_amount,
-                    row.practices.payment.food_amount,
-                    row.practices.payment.transportation_amount + row.practices.payment.food_amount,
-                ],
-                name_subject: row.practices.subject.name,
-                code_subject: row.practices.subject.code,
-                name_career: row.name,
-                code_career: row.code,
-            }
-
-            //Suma los totales
-            food_total += row.practices.payment.food_amount;
-            transportation_total += row.practices.payment.transportation_amount;
-
-            //Obtener ultimo elemento del arreglo
-            const lastArray = dataExcel[dataExcel.length - 1];
-            lastArray.push(rowExcel)
-            
-            //Agrega los totales para el ultimo dato
-            if(index == data.length - 1) {
-                lastArray.push({
-                    total: food_total + transportation_total,
-                    food_total: food_total,
-                    transportation_total: transportation_total
+                    ],
+                    order: [
+                        ['name', 'ASC']
+                    ],
+                    raw: true,
+                    nest: true,
                 })
+
+                if(carrerData.length != 0) {
+                    // Formatear los datos y obtener los totales
+                    let food_total = 0;
+                    let transportation_total = 0;
+                    let titleTable: any = {};
+                    const carrerTable = carrerData.map((item: any, index: number) => {
+                        const tableData = [
+                            index + 1,
+                            formatRut(item.practices.student.rut),
+                            item.practices.student.check_digit,
+                            `${item.practices.student.name} ${item.practices.student.pat_last_name} ${item.practices.student.mat_last_name}`,
+                            formatDate(item.practices.subject.start_date),
+                            formatDate(item.practices.subject.end_date),
+                            item.practices.establishment.name,
+                            item.practices.establishment.commune.name,
+                            item.practices.payment.account_number,
+                            item.practices.payment.bank,
+                            `$ ${formatMoney(item.practices.payment.transportation_amount)}`,
+                            `$ ${formatMoney(item.practices.payment.food_amount)}`,
+                            `$ ${formatMoney(item.practices.payment.transportation_amount + item.practices.payment.food_amount)}`,
+                        ]
+                        
+                        titleTable = {
+                            name_career: item.name,
+                            code_career: item.code,
+                            name_subject: item.practices.subject.name,
+                            code_subject: item.practices.subject.code
+                        };
+                        food_total += item.practices.payment.food_amount;
+                        transportation_total += item.practices.payment.transportation_amount;
+    
+                        return tableData;
+                    })
+    
+                    /* const totales = [
+                            `$ ${formatMoney(transportation_total)}`,
+                            `$ ${formatMoney(food_total)}`,
+                            `$ ${formatMoney(food_total + transportation_total)}`
+                        ];
+                    carrerTable.push(totales); */
+                    
+                    // Agrega los datos de la carrera y los datos del estudiantes en practica en la data
+                    data[titleTable.code_subject] = {
+                        title: `CARRERA ${titleTable.code_career}: ${titleTable.name_career} - (${titleTable.code_subject}) - ${titleTable.name_subject}`,
+                        rows: [
+                            carrerTable
+                        ],
+                        totales: {
+                            transportation: `$ ${formatMoney(transportation_total)}`,
+                            food: `$ ${formatMoney(food_total)}`,
+                            total: `$ ${formatMoney(food_total + transportation_total)}`
+                        }
+                    }
+                }
             }
-            numberStudent++;
-        });
+        }
         
         return res.status(200).json({
             message: "Successfuly query",
-            response: dataExcel
+            response: data
         })
 
 
@@ -200,98 +202,106 @@ export class WorksheetModule {
 
   static async generateWorksheet(req: Request, res: Response){
     try {
-        const { careers, practiceNumbers } = req.body;
+        const careers = req.body;
 
-        const data = await Career.findAll({
-            attributes: [
-                "id",
-                "code",
-                "name"
-            ],
-            where: {
-                code: {
-                    [Op.or]: careers
-                }
-            },
-            include: [
-                {
+        let data: any = [];
+
+        for (const carrer of careers) {
+            const { code, practiceNumbers } = carrer;
+
+            for (const number of practiceNumbers) {
+                // Obtener los registros de una carrera para cierto numero de practica profesional
+                const carrerData = await Career.findAll({
                     attributes: [
                         "id",
-                        "status"
+                        "code",
+                        "name"
                     ],
-                    model: Practice,
-                    as: "practices",
                     where: {
-                        status: 1
+                        code: code
                     },
                     include: [
                         {
                             attributes: [
-                                "name",
-                                "pat_last_name",
-                                "mat_last_name",
-                                "rut",
-                                "check_digit"
+                                "id",
+                                "status"
                             ],
-                            model: User,
-                            as: "student"
-                        },
-                        {
-                            attributes: [
-                                "name",
-                                "code",
-                                "type",
-                                "practice_number",
-                                "start_date",
-                                "end_date"
-                            ],
-                            model: Subject,
-                            as: "subject",
+                            model: Practice,
+                            as: "practices",
                             where: {
-                                type: "Profesional",
-                                practice_number: {
-                                    [Op.or]: practiceNumbers
-                                }
+                                status: 1
                             },
-                            order: [
-                                ['practice_number', 'ASC']
-                            ],
-                        },
-                        {
-                            attributes: [
-                                "account_number",
-                                "bank",
-                                "transportation_amount",
-                                "food_amount"
-                            ],
-                            model: Payment,
-                            as: "payment"
-                        },
-                        {
-                            attributes: [
-                                "name"
-                            ],
-                            model: Establishment,
-                            as: "establishment",
                             include: [
+                                {
+                                    attributes: [
+                                        "name",
+                                        "pat_last_name",
+                                        "mat_last_name",
+                                        "rut",
+                                        "check_digit"
+                                    ],
+                                    model: User,
+                                    as: "student"
+                                },
+                                {
+                                    attributes: [
+                                        "name",
+                                        "code",
+                                        "type",
+                                        "practice_number",
+                                        "start_date",
+                                        "end_date"
+                                    ],
+                                    model: Subject,
+                                    as: "subject",
+                                    where: {
+                                        type: "Profesional",
+                                        practice_number: number
+                                    },
+                                    order: [
+                                        ['practice_number', 'ASC']
+                                    ],
+                                },
+                                {
+                                    attributes: [
+                                        "account_number",
+                                        "bank",
+                                        "transportation_amount",
+                                        "food_amount"
+                                    ],
+                                    model: Payment,
+                                    as: "payment"
+                                },
                                 {
                                     attributes: [
                                         "name"
                                     ],
-                                    model: Commune,
-                                    as: "commune"
+                                    model: Establishment,
+                                    as: "establishment",
+                                    include: [
+                                        {
+                                            attributes: [
+                                                "name"
+                                            ],
+                                            model: Commune,
+                                            as: "commune"
+                                        }
+                                    ]
                                 }
                             ]
                         }
-                    ]
-                }
-            ],
-            order: [
-                ['name', 'ASC']
-            ],
-            raw: true,
-            nest: true,
-        })
+                    ],
+                    order: [
+                        ['name', 'ASC']
+                    ],
+                    raw: true,
+                    nest: true,
+                })
+                
+                //Concatenar arreglos
+                data = [...data, ...carrerData];
+            }
+        }
 
         // Separar en arreglos por cada asignatura
         let numberStudent = 1;
