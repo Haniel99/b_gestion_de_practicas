@@ -19,16 +19,18 @@ export class PracticeModule {
   static async view(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      // 
-      const queryResult = await Practice.findByPk(id, {
+      //
+      const queryResult: any = await Practice.findByPk(id, {
         include: [
           {
-            model: Establishment,
-            as: "establishment",
-          },
-          {
             model: User,
-            as: "estudent",
+            as: "student",
+            include: [
+              {
+                model: StudyPlan,
+                as: "studyPlan",
+              },
+            ],
           },
           {
             model: User,
@@ -40,56 +42,68 @@ export class PracticeModule {
           },
           {
             model: User,
-            as: "workshopteacher"
+            as: "workshopteacher",
+          },
+          {
+            model: Establishment,
+            as: "establishment",
+          },
+
+          {
+            model: Subject,
+            as: "subject",
+            include: [
+              {
+                model: StudyPlan,
+                as: "studyPlan",
+              },
+            ],
           },
         ],
       });
-      
+
       return res.status(200).json({
         status: true,
         message: "Seccessful query",
-        response: queryResult
-      })
+        response: queryResult,
+      });
     } catch (error) {
-      errorHandler(res, error)
+      errorHandler(res, error);
     }
   }
 
   static async update(req: Request, res: Response) {
-
     try {
-      
       const { id } = req.params;
       const data = req.body;
-      console.log("--------------------------")
+      console.log("--------------------------");
       console.log(data);
       const practice = await Practice.findByPk(id);
 
       //Crear profesor colaborador y asociar a practica
-      if(data.taller) {
+      if (data.taller) {
         const workshopTeacher: any = await User.create(data.taller);
         console.log(workshopTeacher);
-        await practice?.update({ workshop_teacher_id: workshopTeacher.id })
+        await practice?.update({ workshop_teacher_id: workshopTeacher.id });
       }
       //Crear profesor de taller y asociar a practica
-      if(data.colaborador) {
+      if (data.colaborador) {
         const collaboratingTeacher: any = await User.create(data.colaborador);
-        await practice?.update({ collaborating_teacher_id: collaboratingTeacher.id })
+        await practice?.update({
+          collaborating_teacher_id: collaboratingTeacher.id,
+        });
       }
 
       return res.status(200).json({
         status: true,
-        message: "Successfully updated data"
-      })
-
+        message: "Successfully updated data",
+      });
     } catch (error) {
       errorHandler(res, error);
     }
-
   }
 
-
-      /*   where: {
+  /*   where: {
           [Op.and]: [
             {
               '$practices.student.name$': {
@@ -98,100 +112,74 @@ export class PracticeModule {
             }
           ]
         }, */
-        /* where: { [Op.and]: [ { name: { [Op.substring]: "his" } } ] }, */
-      
-
+  /* where: { [Op.and]: [ { name: { [Op.substring]: "his" } } ] }, */
 
   static async practicesByCareerId(req: Request, res: Response) {
     try {
       const { id } = req.params;
       let opts = lazyTable(req.body);
-      opts.attributes = [
-        "id",
-        "status"
-      ]
+      opts.attributes = ["id", "status"];
       opts.include = [
-          {
-            model: User,
-            as: "student",
-            attributes: [
-              "name",
-              "pat_last_name",
-              "mat_last_name",
-              "rut",
-              "check_digit"
-            ]
-          },
-          {
-            model: Subject,
-            as: "subject",
-            attributes: [
-              "name",
-              "type",
-              "practice_number"
-            ],
-            include: [
-              {
-                model: StudyPlan,
-                as: "studyPlan",
-                attributes: [
-                  "year"
-                ]
-              }
-            ]
-            
-          },
-          {
-            model: Establishment,
-            as: "establishment",
-            attributes: [
-              "name"
-            ]
-          }
+        {
+          model: User,
+          as: "student",
+          attributes: [
+            "name",
+            "pat_last_name",
+            "mat_last_name",
+            "rut",
+            "check_digit",
+          ],
+        },
+        {
+          model: Subject,
+          as: "subject",
+          attributes: ["name", "type", "practice_number"],
+          include: [
+            {
+              model: StudyPlan,
+              as: "studyPlan",
+              attributes: ["year"],
+            },
+          ],
+        },
+        {
+          model: Establishment,
+          as: "establishment",
+          attributes: ["name"],
+        },
       ];
 
-      const career = await Career.findByPk(id, { attributes: ["id", "name", "code"] });
+      const career = await Career.findByPk(id, {
+        attributes: ["id", "name", "code"],
+      });
 
-      if(!career){
-        return res.status(404).json({
-            message: "No data found",
-            response: []
-        })
-      }
-
-      if(opts.where) {
-          opts.where.career_id = id;
-          opts.where.status = 1
+      if (opts.where) {
+        opts.where.career_id = id;
+        opts.where.status = 1;
       } else {
-          opts.where = {
-              career_id: id,
-              status: 1
-          };
+        opts.where = {
+          career_id: id,
+          status: 1,
+        };
       }
 
       const practices = await Practice.findAndCountAll(opts);
-      
-      if(practices.rows.length == 0){
-          return res.status(404).json({
-              message: "No data found",
-              response: []
-          })
-      }
 
       return res.status(200).json({
-          message: "Successfuly query",
-          response: {
-              career: career,
-              count: practices.count,
-              rows: practices.rows
-          }
+        message: "Successfuly query",
+        response: {
+          career: career,
+          count: practices.count,
+          rows: practices.rows,
+        },
       });
     } catch (error: any) {
-      console.error(error)
-            return res.status(500).json({
-                msg: "Error en el servidor, comuniquese con el administrador",
-                error: error.message
-            });
+      console.error(error);
+      return res.status(500).json({
+        msg: "Error en el servidor, comuniquese con el administrador",
+        error: error.message,
+      });
     }
   }
 
@@ -199,11 +187,11 @@ export class PracticeModule {
     try {
       const { id } = req.params;
 
-      console.log(id)
-      
+      console.log(id);
+
       const practices = await Career.findOne({
         where: {
-          user_id: id
+          user_id: id,
         },
         include: [
           {
@@ -212,22 +200,20 @@ export class PracticeModule {
             include: [
               {
                 model: Subject,
-                as: "subject"
+                as: "subject",
               },
               {
                 model: User,
-                as: "student"
+                as: "student",
               },
               {
                 model: Establishment,
-                as: "establishment"
-              }
-
-            ]
-          }
-        ]
+                as: "establishment",
+              },
+            ],
+          },
+        ],
       });
-      
 
       return res.status(200).json({
         status: true,
@@ -238,5 +224,4 @@ export class PracticeModule {
       errorHandler(res, error);
     }
   }
-
 }

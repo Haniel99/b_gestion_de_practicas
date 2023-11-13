@@ -116,7 +116,7 @@ export class UploadHistoryModule  {
             };
             await UploadHistory.create(fileData, { transaction: t })
 
-            const commit = await t.commit();
+            await t.commit();
 
             return res.status(200).json({
                 message: "Data was loaded successfully",
@@ -126,7 +126,7 @@ export class UploadHistoryModule  {
             });
             
         } catch (error: any) {
-            const rollback = await t.rollback();
+            await t.rollback();
             console.error(error);
             return res.status(500).json({
                 msg: "Error en el servidor, comuniquese con el administrador",

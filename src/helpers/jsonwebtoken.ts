@@ -1,35 +1,28 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
-
+const secretkeyjwt = process.env.SECRET_KEY_JWT || "";
 /**
  *
  * @param data
  * @param key
  * @returns
  */
-const generateToken = (
-  payload: string | number | Object | Buffer,
-  key: string | Buffer
-): string | Error => {
-  try {
-    const token = jwt.sign(
-      {
-        payload: payload,
-      },
-      key,
-      {
-        algorithm: "HS512",
-        expiresIn: "1d",
-      }
-    );
-    return token;
-  } catch (error) {
-    return new Error("Error al generar el token.");
-  }
+const generateToken = (payload: string | number | Object | Buffer) => {
+  const token = jwt.sign(
+    {
+      payload: payload,
+    },
+    secretkeyjwt,
+    {
+      algorithm: "HS512",
+      expiresIn: "7d",
+    }
+  );
+  return token;
 };
 
 const verifyToken = (token: string, key: string | Buffer) => {
-    const tokenData = jwt.verify(token, key);
-    return tokenData;
+  const tokenData = jwt.verify(token, key);
+  return tokenData;
 };
 
 export { generateToken, verifyToken };
