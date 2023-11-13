@@ -1,12 +1,10 @@
 import { Router } from "express";
 import { CareerModule } from "./career.controller";
-import { tokenValidator, validateFields } from "../../middlewares";
-import { existCareerById } from "../../helpers/databasevalidator";
-import { check } from "express-validator";
+import { tokenValidator } from "../../middlewares";
 
 
 const router = Router();
 
 router.post('/index', [ tokenValidator ], CareerModule.index);
-
+router.get('/index', [tokenValidator], CareerModule.getIndex);
 export { router };
