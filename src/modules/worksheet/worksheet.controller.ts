@@ -33,7 +33,7 @@ export class WorksheetModule {
     try {
         const careers = req.body;
 
-        let data: any = {};
+        let data: any = [];
 
         for (const carrer of careers) {
             const { code, practiceNumbers } = carrer;
@@ -169,7 +169,7 @@ export class WorksheetModule {
                     carrerTable.push(totales); */
                     
                     // Agrega los datos de la carrera y los datos del estudiantes en practica en la data
-                    data[titleTable.code_subject] = {
+                    const objCarrer = {
                         title: `CARRERA ${titleTable.code_career}: ${titleTable.name_career} - (${titleTable.code_subject}) - ${titleTable.name_subject}`,
                         rows: [
                             carrerTable
@@ -180,6 +180,8 @@ export class WorksheetModule {
                             total: `$ ${formatMoney(food_total + transportation_total)}`
                         }
                     }
+
+                    data.push(objCarrer);
                 }
             }
         }
