@@ -12,6 +12,8 @@ router.post("/create", [tokenValidator]);
 router.put("/update/:id", [tokenValidator]);
 router.delete("/delete/:id", [tokenValidator]);
 
+router.post('/login', UserModule.postLogin);
+
 router.get(
   "/login",
   passport.authenticate("google", {

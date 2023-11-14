@@ -171,9 +171,9 @@ export class WorksheetModule {
                     // Agrega los datos de la carrera y los datos del estudiantes en practica en la data
                     const objCarrer = {
                         title: `CARRERA ${titleTable.code_career}: ${titleTable.name_career} - (${titleTable.code_subject}) - ${titleTable.name_subject}`,
-                        rows: [
+                        rows: 
                             carrerTable
-                        ],
+                        ,
                         totales: {
                             transportation: `$ ${formatMoney(transportation_total)}`,
                             food: `$ ${formatMoney(food_total)}`,
@@ -185,7 +185,6 @@ export class WorksheetModule {
                 }
             }
         }
-        
         return res.status(200).json({
             message: "Successfuly query",
             response: data

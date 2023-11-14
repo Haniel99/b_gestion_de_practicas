@@ -1,7 +1,6 @@
 import { IActionsLazy, IOptionesLazy } from "../interfaces/IHelpers/lazytable.interface";
 const { Op } = require('sequelize');
 
-
 const lazyTable = (actions: IActionsLazy): any  => {
 
     let options: IOptionesLazy = {};

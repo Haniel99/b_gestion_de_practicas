@@ -1,6 +1,7 @@
 import { Request, Response } from "../../interfaces/express.interfaces";
 import errorHandler from "../../helpers/errorhandler";
 import { Rol, User } from "../../app/app.associatios";
+import { verifyHash } from "../../helpers";
 export default class UserModule {
   constructor() {}
   static async index(req: Request, res: Response) {
@@ -30,7 +31,28 @@ export default class UserModule {
       return errorHandler(res, error);
     }
   }
-  static async rol(req: Request, res: Response){
+
+  static async postLogin(req: Request, res: Response) {
+    try {
+      const { email, pass } = req.body;
+
+      //Validate email
+      const resEmail = await User.findOne({
+        where: { email: email },
+      });
+      verifyHash(pass, resEmail!.password);
+      if (!resEmail) {
+        return res.status(404).json({
+          msg: "el correo no existe"
+        })
+      }
+
+      
+    } catch (error) {
+      errorHandler(res);
+    }
+  }
+  static async rol(req: Request, res: Response) {
     try {
       let id: any = req.user;
       const user: any = await User.findByPk(id, {
@@ -42,8 +64,8 @@ export default class UserModule {
         ],
       });
       return res.json({
-        response: user.rol.name
-      })
+        response: user.rol.name,
+      });
     } catch (error) {
       errorHandler(res, error);
     }

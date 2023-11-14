@@ -10,8 +10,11 @@ const generateHash = async (data: string) => {
   }
 };
 
-const verifyHash = async (data: string | Buffer, dataHash: string) => {
+const verifyHash = async (data: string | Buffer, dataHash: string|null) => {
   try {
+    if (!dataHash) {
+      return false;
+    }
     const result = await compare(data, dataHash);
     return result;
   } catch (error) {
