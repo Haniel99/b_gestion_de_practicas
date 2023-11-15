@@ -194,13 +194,11 @@ export class PracticeModule {
 
       // Formatear planes de estudio y numeros de practicas
       let studyPlansData: any = [];
-      studyPlansData = career.studyPlans.map((item: any) => (item.name))
+      studyPlansData = career.studyPlans.map((item: any) => (item.year))
       let numbersPracticesData: any = []
       numbersPracticesData = subjects.map((item: any) => (item.practice_number))
 
-        
-
-
+      
       return res.status(200).json({
         message: "Successfuly query",
         response: {
