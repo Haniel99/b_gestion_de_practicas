@@ -150,9 +150,35 @@ export class PracticeModule {
         },
       ];
 
-      const career = await Career.findByPk(id, {
+      const career: any = await Career.findByPk(id, {
         attributes: ["id", "name", "code"],
+        include: [
+          {
+            model: StudyPlan,
+            as: "studyPlans",
+            attributes: [
+              "name",
+              "year"
+            ]
+          }
+        ],
       });
+
+      const subjects: any = await Subject.findAll({
+        attributes: ["practice_number"],
+        include: [
+          {
+            model: StudyPlan,
+            as: "studyPlan",
+            attributes: [],
+            where: { career_id: id }
+          }
+        ],
+        group: [ "practice_number" ],
+        order: [
+          ["practice_number", "ASC"]
+        ]
+      })
 
       if (opts.where) {
         opts.where.career_id = id;
@@ -166,10 +192,25 @@ export class PracticeModule {
 
       const practices = await Practice.findAndCountAll(opts);
 
+      // Formatear planes de estudio y numeros de practicas
+      let studyPlansData: any = [];
+      studyPlansData = career.studyPlans.map((item: any) => (item.name))
+      let numbersPracticesData: any = []
+      numbersPracticesData = subjects.map((item: any) => (item.practice_number))
+
+        
+
+
       return res.status(200).json({
         message: "Successfuly query",
         response: {
-          career: career,
+          career: {
+            id: career.id,
+            name: career.name,
+            code: career.code
+          },
+          studyPlans: studyPlansData,
+          numbersPractices: numbersPracticesData,
           count: practices.count,
           rows: practices.rows,
         },
