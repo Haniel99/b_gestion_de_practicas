@@ -8,10 +8,11 @@ import UploadHistory from "../modules/upload_history/upload_history.model";
 import Career from "../modules/career/career.model";
 import StudyPlan from "../modules/career/study_plan.model";
 import EducationalBranch from "../modules/establishment/educational_branch.model";
-import EstablishmentBranch from "../modules/establishment/establishment_branch.model";
 import Commune from "../modules/establishment/commune.model";
 import Province from "../modules/establishment/province.model";
 import Region from "../modules/establishment/region.model";
+import EthnicGroup from "../modules/user/ethnic_group.model";
+import UserEstablishment from "../modules/establishment/user_establishment.model";
 
 // Relacion rol - usuario (1-n)
 Rol.hasMany(User, { foreignKey: "rol_id", as: "users" });
@@ -50,8 +51,8 @@ Establishment.hasMany(Practice, { foreignKey: "establishment_id", as: "establish
 Practice.belongsTo(Establishment, { foreignKey: "establishment_id", as: "establishment" });
 
 // Relacion establecimiento - rama educacional (n-m)
-Establishment.belongsToMany(EducationalBranch, { through: EstablishmentBranch, foreignKey: "establishment_id", as: "educationalBranchs" });
-EducationalBranch.belongsToMany(Establishment, { through: EstablishmentBranch, foreignKey: "educational_branch_id", as: "establishments" });
+Establishment.belongsToMany(EducationalBranch, { through: "establishment_branch", foreignKey: "establishment_id", as: "educationalBranchs" });
+EducationalBranch.belongsToMany(Establishment, { through: "establishment_branch", foreignKey: "educational_branch_id", as: "establishments" });
 
 // Relacion bonos - practicas (1-n)
 Payment.hasMany(Practice, { foreignKey: "payment_info_id", as: "practices" });
@@ -65,13 +66,13 @@ Practice.belongsTo(Career, { foreignKey: "career_id", as: "career" });
 Subject.hasMany(Practice, { foreignKey: "subject_id", as: "practices" });
 Practice.belongsTo(Subject, { foreignKey: "subject_id", as: "subject" });
 
-// Relacion plan de estudio - asignatura (1-n)
-StudyPlan.hasMany(Subject, { foreignKey: "study_plan_id", as: "subjects" });
-Subject.belongsTo(StudyPlan, { foreignKey: "study_plan_id", as: "studyPlan" });
+// Relacion plan de estudio - asignatura (n-m)
+StudyPlan.belongsToMany(Subject, { through: "study_plan_subject", foreignKey: "study_plan_id", as: "subjects" });
+Subject.belongsToMany(StudyPlan, { through: "study_plan_subject", foreignKey: "subject_id", as: "studyPlans" });
 
-// Relacion carrera - plan de estudio (1-n)
-Career.hasMany(StudyPlan, { foreignKey: "career_id", as: "studyPlans" });
-StudyPlan.belongsTo(Career, { foreignKey: "career_id", as: "career" });
+// Relacion carrera - plan de estudio (n-m)
+Career.belongsToMany(StudyPlan, { through: "career_study_plan", foreignKey: "career_id", as: "studyPlans" });
+StudyPlan.belongsToMany(Career, { through: "career_study_plan", foreignKey: "study_plan_id", as: "careers" });
 
 // Relacion comuna - establecimiento (1-n)
 Commune.hasMany(Establishment, { foreignKey: "commune_id", as: "establishments" });
@@ -85,6 +86,17 @@ Commune.belongsTo(Province, { foreignKey: "province_id", as: "province" });
 Region.hasMany(Province, { foreignKey: "region_id", as: "provinces" });
 Province.belongsTo(Region, { foreignKey: "region_id", as: "region" });
 
+// Relacion plan de estudio - practice (1-n)
+StudyPlan.hasMany(Practice, { foreignKey: "study_plan_id", as: "practices" });
+Practice.belongsTo(StudyPlan, { foreignKey: "study_plan_id", as: "studyPlan" });
+
+// Relacion grupo étnico - usuario (estudiante) (1-n)
+EthnicGroup.hasMany(User, { foreignKey: "ethnic_group_id", as: "students" });
+User.belongsTo(EthnicGroup, { foreignKey: "ethnic_group_id", as: "ethnicGroup" });
+
+// Relacion establecimiento - usuario del establecimiento (1-n)
+Establishment.hasMany(UserEstablishment, { foreignKey: "establishment_id", as: "users" });
+UserEstablishment.belongsTo(Establishment, { foreignKey: "establishment_id", as: "establishment" });
 
 export {
   User,
@@ -97,8 +109,9 @@ export {
   Career,
   StudyPlan,
   EducationalBranch,
-  EstablishmentBranch,
   Commune,
   Province,
-  Region
+  Region,
+  EthnicGroup,
+  UserEstablishment
 };

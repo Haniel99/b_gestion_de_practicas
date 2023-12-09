@@ -4,8 +4,8 @@ import sequelize from "../../configs/config";
 class Career extends Model {}
 Career.init(
   {
-    name: DataTypes.STRING, 
     code: DataTypes.STRING,
+    name: DataTypes.STRING,
     sede: DataTypes.STRING,
     user_id: DataTypes.INTEGER
   },

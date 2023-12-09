@@ -30,6 +30,10 @@ User.init(
     phone: DataTypes.STRING,
     address: DataTypes.STRING,
     email: DataTypes.STRING,
+    company_name: DataTypes.STRING,
+    sex: DataTypes.TINYINT,
+    years_experience: DataTypes.INTEGER,
+    type_teacher: DataTypes.TINYINT,
     password: DataTypes.STRING,
     verification_code: DataTypes.STRING,
     status: DataTypes.TINYINT,
@@ -37,6 +41,7 @@ User.init(
     last_access: DataTypes.DATE,
     rol_id: DataTypes.INTEGER,
     study_plan_id: DataTypes.INTEGER,
+    ethnic_group_id: DataTypes.INTEGER
   },
   {
     sequelize,

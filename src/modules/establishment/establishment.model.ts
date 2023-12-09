@@ -4,8 +4,8 @@ import sequelize from "../../configs/config";
 class Establishment extends Model {}
 Establishment.init(
   {
-    name: DataTypes.STRING,
     code: DataTypes.STRING,
+    name: DataTypes.STRING,
     address: DataTypes.STRING,
     phone: DataTypes.STRING,
     fax: DataTypes.STRING,

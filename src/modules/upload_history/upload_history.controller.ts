@@ -1,6 +1,6 @@
 import { errorHandler, excelToJson, lazyTable } from "../../helpers";
 import { IUser, Request, Response } from "../../interfaces";
-import { Career, Establishment, Practice, StudyPlan, Subject, UploadHistory, User, Commune, EducationalBranch, EstablishmentBranch, Payment } from "../../app/app.associatios";
+import { Career, Establishment, Practice, StudyPlan, Subject, UploadHistory, User, Commune, EducationalBranch, Payment } from "../../app/app.associatios";
 import sequelize from "../../configs/config"
 import ExcelJS from "exceljs";
 const { Op } = require('sequelize');
@@ -135,7 +135,7 @@ export class UploadHistoryModule  {
         }
     }
 
-    static async loadEstablishment(req: Request, res: Response){
+    /* static async loadEstablishment(req: Request, res: Response){
         
         const t = await sequelize.transaction();
 
@@ -292,7 +292,7 @@ export class UploadHistoryModule  {
                 error: error.message
             });
         }
-    }
+    } */
 
     static async loadPractices(req: Request, res: Response){
 

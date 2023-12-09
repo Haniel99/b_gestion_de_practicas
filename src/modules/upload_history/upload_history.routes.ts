@@ -14,9 +14,9 @@ router.post("/load-students", [
     upload.single("file"),
 ], UploadHistoryModule.loadStundents);
 
-router.post("/load-establishments", [
+/* router.post("/load-establishments", [
     upload.single("file"),
-], UploadHistoryModule.loadEstablishment);
+], UploadHistoryModule.loadEstablishment); */
 
 router.post("/load-practices", [
     upload.single("file"),

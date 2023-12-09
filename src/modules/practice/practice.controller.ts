@@ -225,42 +225,116 @@ export class PracticeModule {
   static async practicesByCordinatorId(req: Request, res: Response) {
     try {
       const { id } = req.params;
-
-      console.log(id);
-
-      const practices = await Career.findOne({
-        where: {
-          user_id: id,
+      let opts = lazyTable(req.body);
+      opts.attributes = ["id", "status"];
+      opts.include = [
+        {
+          model: User,
+          as: "student",
+          attributes: [
+            "name",
+            "pat_last_name",
+            "mat_last_name",
+            "rut",
+            "check_digit",
+          ],
         },
+        {
+          model: Subject,
+          as: "subject",
+          attributes: ["name", "type", "practice_number"],
+          include: [
+            {
+              model: StudyPlan,
+              as: "studyPlan",
+              attributes: ["year"],
+            },
+          ],
+        },
+        {
+          model: Establishment,
+          as: "establishment",
+          attributes: ["name"],
+        },
+      ];
+
+      const career: any = await Career.findOne({
+        attributes: ["id", "name", "code"],
         include: [
           {
-            model: Practice,
-            as: "practices",
-            include: [
-              {
-                model: Subject,
-                as: "subject",
-              },
-              {
-                model: User,
-                as: "student",
-              },
-              {
-                model: Establishment,
-                as: "establishment",
-              },
-            ],
+            model: User,
+            as: "coordinator",
+            attributes: [],
+            where: {
+              carrer_id: id
+            }
           },
+          {
+            model: StudyPlan,
+            as: "studyPlans",
+            attributes: [
+              "name",
+              "year"
+            ]
+          }
         ],
       });
 
+      const subjects: any = await Subject.findAll({
+        attributes: ["practice_number"],
+        include: [
+          {
+            model: StudyPlan,
+            as: "studyPlan",
+            attributes: [],
+            where: { career_id: id }
+          }
+        ],
+        group: [ "practice_number" ],
+        order: [
+          ["practice_number", "ASC"]
+        ]
+      })
+
+      if (opts.where) {
+        opts.where.career_id = id;
+        opts.where.status = 1;
+      } else {
+        opts.where = {
+          career_id: id,
+          status: 1,
+        };
+      }
+
+      const practices = await Practice.findAndCountAll(opts);
+
+      // Formatear planes de estudio y numeros de practicas
+      let studyPlansData: any = [];
+      studyPlansData = career.studyPlans.map((item: any) => (item.year))
+      let numbersPracticesData: any = []
+      numbersPracticesData = subjects.map((item: any) => (item.practice_number))
+
+      
       return res.status(200).json({
-        status: true,
-        message: "file saved successfully",
-        response: practices,
+        message: "Successfuly query",
+        response: {
+          career: {
+            id: career.id,
+            name: career.name,
+            code: career.code
+          },
+          studyPlans: studyPlansData,
+          numbersPractices: numbersPracticesData,
+          count: practices.count,
+          rows: practices.rows,
+        },
       });
-    } catch (error) {
-      errorHandler(res, error);
+    } catch (error: any) {
+      console.error(error);
+      return res.status(500).json({
+        msg: "Error en el servidor, comuniquese con el administrador",
+        error: error.message,
+      });
     }
   }
 }

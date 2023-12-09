@@ -4,10 +4,10 @@ import sequelize from "../../configs/config";
 class StudyPlan extends Model {}
 StudyPlan.init(
   {
-    name: DataTypes.STRING, 
     code: DataTypes.STRING,
+    name: DataTypes.STRING, 
     year: DataTypes.INTEGER,
-    career_id: DataTypes.INTEGER
+    version: DataTypes.INTEGER
   },
   {
     sequelize,

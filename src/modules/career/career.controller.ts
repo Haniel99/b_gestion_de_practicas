@@ -4,6 +4,7 @@ import {
   Career,
   Establishment,
   Practice,
+  StudyPlan,
   User,
 } from "../../app/app.associatios";
 import sequelize from "sequelize";
