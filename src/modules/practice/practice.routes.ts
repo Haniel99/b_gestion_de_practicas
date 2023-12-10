@@ -7,28 +7,33 @@ const router = Router();
 
 
 
-//
+/*
+router.put("/update/:id",
+[
+  
+],
+PracticeModule.update
+);
+*/
+
 router.get("/view/:id",
   [
-    tokenValidator,
+    /* tokenValidator,
     check("id").isNumeric(),
     check("id").custom(existPracticeById),
-    validateFields,
+    validateFields, */
   ],
   PracticeModule.view
 );
 
-router.put("/update/:id",
-  [
-    
-  ],
-  PracticeModule.update
-);
-
-router.get("/practices-coordinator/:id",
+router.post("/practices-coordinator/:id",
   [],
-  PracticeModule.practicesByCordinatorId);
-
-router.post("/practices-career/:id", [], PracticeModule.practicesByCareerId)
-
-export { router };
+  PracticeModule.practicesByCordinatorId
+);
+  
+  router.post("/practices-career/:id",
+  [],
+  PracticeModule.practicesByCareerId
+);
+  
+  export { router };

@@ -12,6 +12,7 @@ import sequelize from "sequelize";
 export class CareerModule {
   constructor() {}
 
+  // Obtener todas las carreras registradas en la bd
   static async index(req: Request, res: Response) {
     try {
       const opts = lazyTable(req.body);
@@ -60,7 +61,9 @@ export class CareerModule {
       });
     }
   }
-  static async getIndex(req: Request, res: Response){
+
+  
+  /* static async getIndex(req: Request, res: Response){
     try {
       const career = await Career.findAll();
       return res.json({
@@ -69,5 +72,5 @@ export class CareerModule {
     } catch (error) {
       errorHandler(res);
     }
-  }
+  } */
 }

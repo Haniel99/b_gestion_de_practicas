@@ -1,7 +1,13 @@
 import { Model, DataTypes } from "sequelize";
 import sequelize from "../../configs/config";
 
-class Career extends Model {}
+class Career extends Model {
+  id?: number;
+  cede?: string;
+  name?: string;
+  sede?: string;
+  user?: any;
+}
 Career.init(
   {
     code: DataTypes.STRING,
