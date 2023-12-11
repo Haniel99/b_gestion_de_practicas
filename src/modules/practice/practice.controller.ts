@@ -229,6 +229,7 @@ export class PracticeModule {
           model: Subject,
           as: "subject",
           attributes: [
+            "code",
             "name",
             "type",
             "practice_number"],
@@ -237,6 +238,7 @@ export class PracticeModule {
           model: StudyPlan,
           as: "studyPlan",
           attributes: [
+            "code",
             "name",
             "year",
             "version"
@@ -245,7 +247,10 @@ export class PracticeModule {
         {
           model: Establishment,
           as: "establishment",
-          attributes: ["name"],
+          attributes: [
+            "code",
+            "name"
+          ],
         },
       ];
 
