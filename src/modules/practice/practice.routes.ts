@@ -16,6 +16,13 @@ PracticeModule.update
 );
 */
 
+router.post("/index",
+  [
+
+  ],
+  PracticeModule.index
+);
+
 router.get("/view/:id",
   [
     /* tokenValidator,

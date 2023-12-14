@@ -17,6 +17,83 @@ import { getFilterPracticeNumbers, getFilterSubjects, getFilterEstablishments, g
 export class PracticeModule {
   constructor() {}
 
+  static async index(req: Request, res: Response) {
+    try {
+      let opts = lazyTable(req.body);
+      opts.include = [
+        {
+          model: User,
+          as: "student",
+          attributes: [
+            "name",
+            "pat_last_name",
+            "mat_last_name",
+            "rut",
+            "check_digit",
+          ],
+        },
+        {
+          model: Subject,
+          as: "subject",
+          attributes: [
+            "code",
+            "name",
+            "type",
+            "practice_number"],
+        },
+        {
+          model: StudyPlan,
+          as: "studyPlan",
+          attributes: [
+            "code",
+            "name",
+            "year",
+            "version"
+          ]
+        },
+        {
+          model: Establishment,
+          as: "establishment",
+          attributes: [
+            "code",
+            "name"
+          ],
+        },
+      ];
+
+      console.log("aquii 1")
+
+      const practices = await Practice.findAndCountAll(opts);
+
+      console.log("aquii 2")
+
+      //Filtros
+      let filters: any = {};
+        filters.practiceNumbers = await getFilterPracticeNumbers();
+        filters.subjects = await getFilterSubjects();
+        filters.establishments = await getFilterEstablishments();
+        filters.studyPlans = await getFilterStudyPlans();
+
+        console.log("aquii 3") 
+
+      return res.status(200).json({
+        message: "Successfuly query",
+        response: {
+          filters: filters,
+          count: practices.count,
+          rows: practices.rows
+        },
+      })
+
+    } catch (error:any) {
+      console.error(error);
+      return res.status(500).json({
+        msg: "Error en el servidor, comuniquese con el administrador",
+        error: error.message,
+      });
+    }
+  };
+
   static async view(req: Request, res: Response) {
     try {
       const { id } = req.params;
@@ -197,6 +274,8 @@ export class PracticeModule {
     try {
       const { id } = req.params;
 
+      console.log(req.body);
+
       //Datos de la carrera a la que pertenece el coordinador
       const career = await Career.findOne({
         attributes: [
@@ -265,10 +344,10 @@ export class PracticeModule {
       let filters: any = {};
       if (career?.id !== undefined) {
         //Filtros
-        filters.practiceNumbersFilter = await getFilterPracticeNumbers(career.id);
-        filters.subjectsFilter = await getFilterSubjects(career.id);
-        filters.establishmentsFilter = await getFilterEstablishments(career.id);
-        filters.studyPlansFilter = await getFilterStudyPlans(career.id);
+        filters.practiceNumbers = await getFilterPracticeNumbers(career.id);
+        filters.subjects = await getFilterSubjects(career.id);
+        filters.establishments = await getFilterEstablishments(career.id);
+        filters.studyPlans = await getFilterStudyPlans(career.id);
       }
 
       

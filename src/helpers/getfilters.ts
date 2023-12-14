@@ -1,8 +1,15 @@
 import { Career, Establishment, Practice, StudyPlan, Subject } from "../app/app.associatios";
 
 
-// Obtener los filtros por numero de practica de una carrera
-async function getFilterPracticeNumbers(id: number) {
+// Obtener los filtros por numero de practica de una carrera o todas las carreras
+async function getFilterPracticeNumbers(id?: number) {
+    let whereCondition = {};
+    if (id) {
+        whereCondition = {
+            '$studyPlans.careers.id$': id
+        };
+    }
+    
     const practiceNumbersData: Subject[] = await Subject.findAll({
         attributes: [
             "practice_number",
@@ -21,9 +28,7 @@ async function getFilterPracticeNumbers(id: number) {
                 ]
             }
         ],
-        where: {
-            '$studyPlans.careers.id$': id
-        },
+        where: whereCondition,
         order: [
             "practice_number"
         ]
@@ -36,8 +41,15 @@ async function getFilterPracticeNumbers(id: number) {
     return practiceNumbersFilter;
 }
 
-// Obtener filtros por codigo de asignatura con sus respectivos nombres de una carrera
-async function getFilterSubjects(id: number) {
+// Obtener filtros por codigo de asignatura con sus respectivos nombres de una carrera o todas las carreras
+async function getFilterSubjects(id?: number) {
+    let whereCondition = {};
+    if (id) {
+        whereCondition = {
+            '$studyPlans.careers.id$': id
+        };
+    }
+    
     const subjectsFilter: Subject[] = await Subject.findAll({
         attributes: [
             "code",
@@ -57,9 +69,7 @@ async function getFilterSubjects(id: number) {
                 ]
             }
         ],
-        where: {
-            '$studyPlans.careers.id$': id
-        },
+        where: whereCondition,
         order: [
             "code"
         ]
@@ -72,8 +82,15 @@ async function getFilterSubjects(id: number) {
     return subjectsFilter;
 }
 
-// Obtener filtros de establecimientos de las practicas de una carrera
-async function getFilterEstablishments(id: number) {
+// Obtener filtros de establecimientos de las practicas de una carrera o todas las carreras
+async function getFilterEstablishments(id?: number) {
+    let whereCondition = {};
+    if (id) {
+        whereCondition = {
+            '$practices.career_id$': id
+        };
+    }
+
     const establishmentsFilter = await Establishment.findAll({
         attributes: [
             "code",
@@ -86,9 +103,7 @@ async function getFilterEstablishments(id: number) {
                 attributes: []
             }
         ],
-        where: {
-            '$practices.career_id$': id
-        },
+        where: whereCondition,
         order: [
             "name"
         ]
@@ -97,8 +112,15 @@ async function getFilterEstablishments(id: number) {
     return establishmentsFilter
 }
 
-// Obtener filtros de los planes de estudio de las practicas de una carrera
-async function getFilterStudyPlans(id: number) {
+// Obtener filtros de los planes de estudio de las practicas de una carrera o todas las carreras
+async function getFilterStudyPlans(id?: number) {
+    let whereCondition = {};
+    if (id) {
+        whereCondition = {
+            '$careers.id$': id
+        };
+    }
+
     const studyPlansFilter = await StudyPlan.findAll({
         attributes: [
             "code",
@@ -111,9 +133,7 @@ async function getFilterStudyPlans(id: number) {
                 attributes: []
             }
         ],
-        where: {
-            '$careers.id$': id
-        },
+        where: whereCondition,
         order: [
             ["year", "DESC"],
             "version"
