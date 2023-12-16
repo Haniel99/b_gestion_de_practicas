@@ -37,14 +37,7 @@ export class App {
   private middlewares(): void {
     this.app.use(cors());
     this.app.use(json());
-    this.app.use(session({
-      secret: 'llavesecretauta',
-      resave: false,
-      saveUninitialized: false,
-      cookie: { secure: false }
-    }));
     this.app.use(passport.initialize());
-    this.app.use(passport.session());
   }
 
   private async connectDB(): Promise<any> {
