@@ -24,6 +24,7 @@
     "@types/passport": "^1.0.14",
     "@types/passport-google-oauth2": "^0.1.7",
     "@types/sequelize": "^4.28.15",
+    "@types/mysql": "^2.15.24",
     "ts-node": "^10.9.1"
   },
   "dependencies": {
