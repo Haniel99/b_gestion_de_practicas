@@ -591,7 +591,7 @@ export class UploadHistoryModule  {
                 })
             }
 
-            if (type != 3) {
+            if (type != 4) {
                 return res.status(400).json({
                     message: "Incorrect file type"
                 })
@@ -607,9 +607,7 @@ export class UploadHistoryModule  {
             let rowCreated = 0;
             let rowUpdated = 0;
             
-            for (let row of excelData.data) {
-
-            }
+            
             
         } catch (error: any) {
             const rollback = await t.rollback();
