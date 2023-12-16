@@ -578,4 +578,47 @@ export class UploadHistoryModule  {
 
     }
 
+    static async loadCareer(req: Request, res: Response) {
+
+        const t = await sequelize.transaction();
+
+        try {
+            const { type, name } = req.body;
+
+            if (!req.file) {
+                return res.status(400).json({
+                    message: "No file received"
+                })
+            }
+
+            if (type != 3) {
+                return res.status(400).json({
+                    message: "Incorrect file type"
+                })
+            }
+
+            const excelData: any = await excelToJson(req.file.buffer, type);
+            if (excelData.length == 0) {
+                return res.status(400).json({
+                    message: "Excel formatting is incorrect"
+                });
+            }
+
+            let rowCreated = 0;
+            let rowUpdated = 0;
+            
+            for (let row of excelData.data) {
+
+            }
+            
+        } catch (error: any) {
+            const rollback = await t.rollback();
+            console.error(error);
+            return res.status(500).json({
+                msg: "Error en el servidor, comuniquese con el administrador",
+                error: error.message
+            });
+        }
+    }
+
 }
