@@ -4,7 +4,6 @@ import { json } from "body-parser";
 import { RouterApp } from "./app.router";
 import sequelize from "../configs/config";
 import {passport} from "../helpers/googleservices";
-import session from "express-session";
 
 /**
  *
@@ -27,7 +26,7 @@ export class App {
     //Se inician los middlewares
     this.middlewares();
     //Se conecta a la base de datos
-    this.connectDB();
+    //this.connectDB();
     //Se inicia el enrutador
     this.loadRouter();
   }
