@@ -70,9 +70,21 @@ export class UploadHistoryModule  {
             }
 
             let rowCreated = 0;
-            let rowUpdated = 0;
             
             for (let row of excelData.data) {
+                //REGISTRAR - ESTUDIANTE
+                //Validar que el plan de estudio existe
+                const studyPlan: any = await StudyPlan.findOne({
+                    where: {
+                        code: row.study_plan
+                    },
+                    transaction: t
+                });
+                if (!studyPlan) {
+                    throw new Error(`Unknown study plan code: ${row.study_plan}` );
+                }
+
+                //Validar que el estudiante no existe
                 const student: any = await User.findOne({
                     where: {
                         rut: row.rut
@@ -80,19 +92,17 @@ export class UploadHistoryModule  {
                     transaction: t
                 });
 
-                const studyPlan: any = await StudyPlan.findOne({
-                    where: {
-                        code: row.study_plan
-                    },
-                    transaction: t
-                });
-
-                if (!studyPlan) {
-                    throw new Error(`Unknown study plan code: ${row.study_plan}` );
-                }
 
                 const studentData = {
-                    ...row,
+                    name: row.name_student,
+                    pat_last_name: row.pat_last_name_student,
+                    mat_lat_name: row.mat_last_name_student,
+                    rut: row.rut_student,
+                    check_digit: row.check_digit_student,
+                    phone: row.phone_student,
+                    address: row.address_student,
+                    email: row.email_student,
+
                     study_plan_id: studyPlan.id
                 }
 
@@ -102,7 +112,6 @@ export class UploadHistoryModule  {
                     rowCreated++;
                 } else {// Actualizar datos del estudiante (si el rut existe en la bd)
                     await student.update(studentData, { transaction: t })
-                    rowUpdated++;
                 }
             }
 
@@ -110,7 +119,7 @@ export class UploadHistoryModule  {
                 name: name,
                 upload_date: new Date(),
                 file: req.file,
-                number_rows: rowCreated + rowUpdated,
+                number_rows: rowCreated,
                 file_type: "Estudiantes",
                 user_id: 4 //Cambiar por el usuario que inicio sesion
             };
@@ -121,8 +130,7 @@ export class UploadHistoryModule  {
             return res.status(200).json({
                 message: "Data was loaded successfully",
                 rowCreated: rowCreated,
-                rowUpdated: rowUpdated,
-                total: rowCreated + rowUpdated
+                total: rowCreated
             });
             
         } catch (error: any) {
@@ -135,7 +143,7 @@ export class UploadHistoryModule  {
         }
     }
 
-    /* static async loadEstablishment(req: Request, res: Response){
+    static async loadEstablishment(req: Request, res: Response){
         
         const t = await sequelize.transaction();
 
@@ -162,11 +170,13 @@ export class UploadHistoryModule  {
             }
 
             let rowCreated = 0;
-            let rowUpdated = 0;
-            let codeOld = "";
+            let lastEstablishment = null;
+            let listCodesEstablishment : number[] = [];
             
             for (let row of excelData.data) {
                 if (row.code_region == 15) {
+                    //REGISTRAR - ESTABLECIMIENTO
+                    //Validar que exista la comuna
                     const commune: any = await Commune.findOne({
                         where: {
                             code: row.code_commune
@@ -176,114 +186,81 @@ export class UploadHistoryModule  {
                     if (!commune) {
                         throw new Error(`Unknown commune code: ${row.code_commune}`);
                     }
-
+                    //Validar que el establecimiento no existe
                     let establishment: any = await Establishment.findOne({
                         where: {
                             code: row.code_establishment
                         },
                         transaction: t
                     })
-
-                    //console.log(row.address)
+                    //Obtener los datos del establecimiento desde el excel
                     const establishmentData = {
-                        name: row.name,
                         code: row.code_establishment,
-                        address: row.address,
-                        phone: row.phone,
-                        fax: row.fax,
-                        email: row.email,
-                        dependence: row.dependence,
+                        name: row.name_establishment,
+                        address: row.address_establishment,
+                        phone: row.phone_establishment,
+                        fax: row.fax_establishment,
+                        email: row.email_establishment,
+                        dependence: row.dependence_establishment,
                         commune_id: commune.id
                     }
-
-                    // Crear establecimiento (si el codigo no existe en la bd)
+                    //Registrar establecimiento en caso de que no exista
                     if (!establishment) {
                         establishment = await Establishment.create(establishmentData, { transaction: t });
                         rowCreated++;
-                    } else { // Actualizar establecimiento (si el codigo existe en la bd)
-                        await establishment.update(establishmentData, { transaction: t })
-                        rowUpdated++
+                    } else { // Actualizar datos del establecimiento en caso de que si exista
+                        //Validar si el establecimiento ya fue actualizado anteriormente
+                        if (row.code_establishment != lastEstablishment) {
+                            await establishment.update(establishmentData, { transaction: t });
+                            lastEstablishment = row.code_establishment;
+                        }
                     }
-
-                    const establishmentBranchs: any = await EstablishmentBranch.count({
-                        where: {
-                            establishment_id: establishment.id
-                        },
-                        transaction: t
-                    })
-
+                    
+                    //REGISTRAR - RAMAS EDUCACIONALES
+                    //Validar que exista la rama educacional
                     const educational_branch: any = await EducationalBranch.findOne({
                         where: {
-                            code: row.educational_branch
+                            code: row.code_educational_branch
                         },
                         transaction: t
                     })
-
                     if (!educational_branch) {
                         throw new Error(`Unknown educational branch code: ${row.educational_branch}`);
                     }
-                    
-                    //console.log(establishment.code, " ---- ", educational_branch.code, " id:", educational_branch.id)
-                    // Primera iteracion de un establecimiento
-                    if (establishmentBranchs != 0 && establishment.code != codeOld) {
-                        // Borrar ramas educacionales del establecimiento
-                        await EstablishmentBranch.destroy({
-                            where: {
-                                establishment_id: establishment.id
-                            },
-                            transaction: t
-                        })
-                        // Agregar las ramas educacionales actuales
-                        await EstablishmentBranch.create({
-                            establishment_id: establishment.id, 
-                            educational_branch_id: educational_branch.id
-                        },
-                        { transaction: t })
-                        
-                        codeOld = establishment.code;
-                    } else {
-                        const branch: any = await EstablishmentBranch.count({
-                            where: {
-                                establishment_id: establishment.id, 
-                                educational_branch_id: educational_branch.id
-                            },
-                            transaction: t
-                        })
-
-                        if (branch == 0) {
-                            // Agregar las ramas educacionales actuales
-                            await EstablishmentBranch.create({
-                                establishment_id: establishment.id, 
-                                educational_branch_id: educational_branch.id
-                            },
-                            { transaction: t })
-                            codeOld = establishment.code;
-                        }
+                    //Eliminar las ramas educacionales anteriores relacionadas con el establecimiento (solo una vez)
+                    if (listCodesEstablishment.includes(row.code_establishment)) {
+                        //Eliminar las ramas educacionales
+                        await establishment.removeEducationalBranchs({ transaction: t });
+                        //Registrar nueva rama eduacacional
+                        await establishment.addEducationalBranch(educational_branch, { transaction: t });                        
+                        listCodesEstablishment.push(row.code_establishment);
+                    } else { //Si ya se eliminaron las ramas anteriores agregar la nueva rama directamente
+                        await establishment.addEducationalBranch(educational_branch, { transaction: t });                        
                     }
                 }
             }
 
+            //REGISTRAR - ARCHIVO IMPORTADO
+            //Obtener datos del archivo
             const fileData = {
                 name: name,
                 upload_date: new Date(),
                 file: req.file,
-                number_rows: rowCreated + rowUpdated,
+                number_rows: excelData.numberRows,
                 file_type: "Establecimientos",
-                user_id: 4 //Cambiar por el usuario que inicio sesion
+                user_id: 1 //Cambiar por el usuario que inicio sesion
             };
-            await UploadHistory.create(fileData, { transaction: t })
-
+            //Registrar archivo importado
+            const file = await UploadHistory.create(fileData, { transaction: t });
+            //Guardar estado
             const commit = await t.commit();
+
 
             return res.status(200).json({
                 message: "Data was loaded successfully",
                 rowCreated: rowCreated,
-                rowUpdated: rowUpdated,
-                total: rowCreated + rowUpdated
+                total: excelData.numberRows,
             });
-
-
-            
         } catch (error: any) {
             const rollback = await t.rollback();
             console.error(error);
@@ -292,7 +269,7 @@ export class UploadHistoryModule  {
                 error: error.message
             });
         }
-    } */
+    }
 
     static async loadPractices(req: Request, res: Response){
 
@@ -496,7 +473,6 @@ export class UploadHistoryModule  {
             }
 
             let rowCreated = 0;
-            let rowUpdated = 0;
             
             for (let row of excelData.data) {
                 const studyPlan: any = await StudyPlan.findOne({
@@ -543,7 +519,6 @@ export class UploadHistoryModule  {
                     rowCreated++;
                 } else {// Actualizar datos de la asignatura (si el codigo existe en la bd)
                     await subject.update(subjectData, { transaction: t });
-                    rowUpdated++;
                 }
 
             }
@@ -552,7 +527,7 @@ export class UploadHistoryModule  {
                 name: name,
                 upload_date: new Date(),
                 file: req.file,
-                number_rows: rowCreated + rowUpdated,
+                number_rows: rowCreated,
                 file_type: "Asignaturas",
                 user_id: 4 //Cambiar por el usuario que inicio sesion
             };
@@ -563,8 +538,7 @@ export class UploadHistoryModule  {
             return res.status(200).json({
                 message: "Data was loaded successfully",
                 rowCreated: rowCreated,
-                rowUpdated: rowUpdated,
-                total: rowCreated + rowUpdated
+                total: rowCreated
             });
             
         } catch (error: any) {
@@ -578,7 +552,7 @@ export class UploadHistoryModule  {
 
     }
 
-    static async loadCareer(req: Request, res: Response) {
+    static async loadCareers(req: Request, res: Response) {
 
         const t = await sequelize.transaction();
 
@@ -605,10 +579,99 @@ export class UploadHistoryModule  {
             }
 
             let rowCreated = 0;
-            let rowUpdated = 0;
+            let lastCareer = null;
+            let lastStudyPlan = null;
             
-            
-            
+            for (let row of excelData.data) {
+                //REGISTRAR - CARRERA
+                //Validar que la carrera no existe
+                const career: any = await Career.findOne({
+                    where: {
+                        code: row.code_career
+                    },
+                    transaction: t
+                })
+                
+                //Obtener los datos del excel de la carrera
+                const careerData = {
+                    code: row.code_career,
+                    name: row.name_career,
+                    sede: row.sede_career,
+                }
+                //Registrar carrera en caso de que no exista
+                if (!career) {
+                    //Registrar carrera
+                    const careerCreated = await Career.create(careerData, { transaction: t });
+                } else { //Actualizar datos de la carrera en caso de que si exista
+                    //Validar si la carrera ya fue actualizada anteriormente
+                    if (row.code_career != lastCareer) {
+                        //Actualizar carrera
+                        await career.update(careerData, { transaction: t });
+                        lastCareer = row.code_career;
+                    }
+                }
+                
+                //REGISTRAR - PLAN DE ESTUDIO
+                //Validar que no exista el plan de estudio
+                const studyPlan: any = await StudyPlan.findOne({
+                    where: {
+                        code: row.code_study_plan
+                    },
+                    transaction: t
+                })
+                
+                //Obtener los datos del excel del plan de estudio
+                const studyPlanData = {
+                    code: row.code_study_plan,
+                    name: `Plan ${row.year_study_plan} v${row.version_study_plan}`,
+                    year: row.year_study_plan,
+                    version: row.version_study_plan
+                }
+                //Registrar plan de estudio en caso
+                if (!studyPlan) {
+                    //Registrar plan de estudio
+                    const studyPlanCreated: any = await StudyPlan.create(studyPlanData, { transaction: t });
+                    //Buscar la carrera creada
+                    const careerCreated = await Career.findOne({
+                        where: {
+                            code: row.code_career
+                        },
+                        transaction: t
+                    })
+                    //Registrar la relacion entre carrera y el plan de estudio
+                    await studyPlanCreated.addCareer(careerCreated, { transaction: t });
+                    rowCreated++
+                } else { //Actualizar datos del plan de estudio en caso de que si exista
+                    //Validar si el plan de estudio ya fue actualizado anteriormente
+                    if (row.code_study_plan != lastStudyPlan) {
+                        //Actualizar plan de estudio
+                        await studyPlan.update(studyPlanData, { transaction: t })
+                        lastStudyPlan = row.code_study_plan;
+                    }
+                }
+            }
+
+            //REGISTRAR - ARCHIVO IMPORTADO
+            //Obtener datos del archivo
+            const fileData = {
+                name: name,
+                upload_date: new Date(),
+                file: req.file,
+                number_rows: excelData.numberRows,
+                file_type: "Carreras",
+                user_id: 1 //Cambiar por el usuario que inicio sesion
+            };
+            //Registrar archivo importado
+            const file = await UploadHistory.create(fileData, { transaction: t });
+            //Guardar estado
+            const commit = await t.commit();
+
+
+            return res.status(200).json({
+                message: "Data was loaded successfully",
+                rowCreated: rowCreated,
+                total: excelData.numberRows,
+            });  
         } catch (error: any) {
             const rollback = await t.rollback();
             console.error(error);
