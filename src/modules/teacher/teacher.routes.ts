@@ -11,7 +11,7 @@ router.post("/index",
 );
   
 router.post("/create",
-    [],
+    [tokenValidator],
     TeacherModule.create
 );
 

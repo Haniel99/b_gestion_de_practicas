@@ -76,9 +76,8 @@ export default class TeacherModule {
         const t = await sequelize.transaction();
 
         try {
-            const id = 2 //Id del coordinador
+            const id = req.user;
             const profesorData = req.body; //Datos del nuevo profesor
-
             //REGISTRAR - PROFESOR
             //Validar que el profesor no exista
             let profesor: any = await User.findOne({
@@ -102,6 +101,7 @@ export default class TeacherModule {
                 },
                 transaction: t
             })
+            console.log(career);
             //Validar si existe la carrera del coordinador
             if (!career) {
                 return res.status(401).json({
@@ -111,7 +111,7 @@ export default class TeacherModule {
             //Registrar relacion profesor - carrera
             await profesor.addCareer(career, { transaction: t });
             //Guardar estado            
-            const commit = await t.commit();
+            await t.commit();
 
             return res.status(200).json({
                 msg: "Successfully registered teacher"
