@@ -12,7 +12,7 @@ router.post("/index-paginado", [
 
 router.post("/load-students", [
     upload.single("file"),
-], UploadHistoryModule.loadStundents);
+], UploadHistoryModule.loadStudents);
 
 router.post("/load-establishments", [
     upload.single("file"),

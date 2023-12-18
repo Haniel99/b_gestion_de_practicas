@@ -13,7 +13,7 @@ const translations = [
     PER_CELULAR: "phone_student",
     PER_EMAIL: "email_student",
     PLA_CODIGO: "code_study_plan",
-    SEX_CODE: "sex_student_student",
+    SEX_CODE: "sex_student",
     PNS_NOMBRE_SOCIAL: "social_name_student",
     PET_ETNIA: "code_ethnic",
     PET_NOMBRE: "name_ethnic",

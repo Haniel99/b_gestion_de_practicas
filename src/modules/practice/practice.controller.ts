@@ -103,6 +103,15 @@ export class PracticeModule {
           {
             model: User,
             as: "student",
+            attributes: [
+              "name",
+              "pat_last_name",
+              "mat_last_name",
+              "rut",
+              "phone",
+              "address",
+              "email"
+            ],
             include: [
               {
                 model: StudyPlan,
@@ -125,8 +134,13 @@ export class PracticeModule {
           {
             model: Establishment,
             as: "establishment",
+            attributes: ["name", "code", "address", "phone", "email"]
           },
+        ],
+      });
 
+      const practice = await Practice.findByPk(id,{
+        include:[
           {
             model: Subject,
             as: "subject",
@@ -134,50 +148,94 @@ export class PracticeModule {
           {
             model: StudyPlan,
             as: "studyPlan",
-          }
-        ],
+          },
+        ]
       });
 
-      return res.status(200).json({
+      let profesores = [];
+      if (queryResult.supervisor) {
+        profesores.push({
+          type: "Profesor supervisor",
+          data: queryResult.supervisor,
+        });
+      }
+
+      if (queryResult.workshopteacher) {
+        profesores.push({
+          type: "Profesor de taller",
+          data: queryResult.workshopteacher,
+        });
+      }
+
+      if (queryResult.collaboratingTeacher) {
+        profesores.push({
+          type: "Profesor colaborador",
+          data: queryResult.collaboratingTeacher,
+        });
+      }
+
+      return res.json({
         status: true,
         message: "Seccessful query",
-        response: queryResult,
+        response: [
+          [{ type: "Datos del alumno", data: queryResult.student }],
+          [{ type: "Datos de practica", data: practice }],
+          profesores,
+          [
+            {
+              type: "Datos del establecimiento",
+              data: queryResult.establishment,
+            },
+          ],
+          
+        ],
       });
     } catch (error) {
       errorHandler(res, error);
-    }
-  }
+    } 
+  };
 
-  /* static async update(req: Request, res: Response) {
+  static async update(req: Request, res: Response) {
     try {
-      const { id } = req.params;
-      const data = req.body;
-      console.log("--------------------------");
-      console.log(data);
-      const practice = await Practice.findByPk(id);
+      const practiceId = req.params.id;
+      const { teacherId } = req.body;
+      const usuarioId = 2 //Id usuario que inicio sesion
 
-      //Crear profesor colaborador y asociar a practica
-      if (data.taller) {
-        const workshopTeacher: any = await User.create(data.taller);
-        console.log(workshopTeacher);
-        await practice?.update({ workshop_teacher_id: workshopTeacher.id });
-      }
-      //Crear profesor de taller y asociar a practica
-      if (data.colaborador) {
-        const collaboratingTeacher: any = await User.create(data.colaborador);
-        await practice?.update({
-          collaborating_teacher_id: collaboratingTeacher.id,
+      //Validar que el profesor pertenezca al coordinador
+      const profesor = await User.findOne({
+        include: [
+          {
+            model: Career,
+            as: "careers"
+          }
+        ],
+        where: {
+          id: teacherId,
+          '$careers.user_id$': usuarioId
+        }
+      });
+      if (!profesor) {
+        return res.status(401).json({
+          message: "The coordinator does not have this teacher registered"
         });
       }
+      //Actualizar practica
+
+  
+
 
       return res.status(200).json({
         status: true,
         message: "Successfully updated data",
       });
-    } catch (error) {
-      errorHandler(res, error);
+    } catch (error: any) {
+      console.error(error);
+      return res.status(500).json({
+        msg: "Error en el servidor, comuniquese con el administrador",
+        error: error.message,
+      });
     }
-  } */
+  }
 
   static async practicesByCareerId(req: Request, res: Response) {
     try {
@@ -268,7 +326,7 @@ export class PracticeModule {
         error: error.message,
       });
     }
-  }
+  };
 
   static async practicesByCordinatorId(req: Request, res: Response) {
     try {
