@@ -99,8 +99,8 @@ Establishment.hasMany(UserEstablishment, { foreignKey: "establishment_id", as: "
 UserEstablishment.belongsTo(Establishment, { foreignKey: "establishment_id", as: "establishment" });
 
 // Relacion usuario (profesores) - carrera (n-m)
-User.belongsToMany(Career, { through: "teacher_in_career", as: "careers" });
-Career.belongsToMany(User, { through: "teacher_in_career", as: "teachers" });
+User.belongsToMany(Career, { through: "teacher_in_career", foreignKey: "user_id", as: "careers" });
+Career.belongsToMany(User, { through: "teacher_in_career", foreignKey: "career_id", as: "teachers" });
 
 export {
   User,

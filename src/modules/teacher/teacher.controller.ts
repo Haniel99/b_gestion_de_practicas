@@ -36,6 +36,33 @@ export default class TeacherModule {
         }
     }
 
+    /* static async view(req: Request, res: Response) {
+        try {
+            //Validar que el coordinador tenga asociado una carrera
+            const career = await Career.findOne({
+                where: {
+                    user_id: usuarioId
+                }
+            })
+            if (!career) {
+                return res.status(401).json({
+                    msg: "There is no assigned career"
+                })
+            }
+            
+            let opts = lazyTable(req.body);
+            opts.include = [
+            ]
+
+        } catch (error: any) {
+            console.error(error);
+            return res.status(500).json({
+            msg: "Error en el servidor, comuniquese con el administrador",
+            error: error.message,
+            });
+        }
+    }
+ */
     static async teachersByCoordinator(req: Request, res:Response) {
         try {
             const usuarioId = 2; //Id del coordinador que inicio sesion
