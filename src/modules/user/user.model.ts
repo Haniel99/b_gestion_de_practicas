@@ -1,7 +1,7 @@
 import { Model, DataTypes } from "sequelize";
 import sequelize from "../../configs/config";
 class User extends Model {
-  password!: string;
+  declare password: string;
 }
 
 User.init(
@@ -14,23 +14,23 @@ User.init(
       validate: {
         len: {
           args: [8, 8],
-          msg: 'The rut must be 8 digits long'
-        }
-      }
+          msg: "The rut must be 8 digits long",
+        },
+      },
     },
     check_digit: {
       type: DataTypes.STRING,
       validate: {
         len: {
           args: [1, 1],
-          msg: 'The rut must be 1 digits long'
-        }
-      }
+          msg: "The rut must be 1 digits long",
+        },
+      },
     },
     phone: DataTypes.STRING,
     address: DataTypes.STRING,
     email: DataTypes.STRING,
-    company_name: DataTypes.STRING,
+    social_name: DataTypes.STRING,
     sex: DataTypes.TINYINT,
     years_experience: DataTypes.INTEGER,
     type_teacher: DataTypes.TINYINT,
@@ -41,7 +41,7 @@ User.init(
     last_access: DataTypes.DATE,
     rol_id: DataTypes.INTEGER,
     study_plan_id: DataTypes.INTEGER,
-    ethnic_group_id: DataTypes.INTEGER
+    ethnic_group_id: DataTypes.INTEGER,
   },
   {
     sequelize,

@@ -25,14 +25,14 @@ passport.use(
         const resUser: any = await User.findOne({
           where: { email: profile.email },
         });
-
         if (!resUser) {
           return done(null, false);
         }
 
-        const  token = generateToken(resUser.id);
+        const token = generateToken(resUser.id);
         return done(null, token);
       } catch (error) {
+        console.log("Usuario: ", error);
         return done(null, false);
       }
     }

@@ -32,6 +32,7 @@ router.get(
 );
 
 router.get("/auth/google/failture", async (req: Request, res: Response) => {
+  
   const successMessage = `
     <script>
       window.opener.postMessage({ success: false}, '*');
