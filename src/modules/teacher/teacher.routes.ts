@@ -14,4 +14,10 @@ router.post("/create",
     [],
     TeacherModule.create
 );
+
+router.post("/teachers-by-coordinator",
+  [],
+  TeacherModule.teachersByCoordinator
+)
+
   export { router };
