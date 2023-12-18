@@ -1,6 +1,6 @@
 import { errorHandler, excelToJson, lazyTable } from "../../helpers";
 import { IUser, Request, Response } from "../../interfaces";
-import { Career, Establishment, Practice, StudyPlan, Subject, UploadHistory, User, Commune, EducationalBranch, Payment } from "../../app/app.associatios";
+import { Career, Establishment, Practice, StudyPlan, Subject, UploadHistory, User, Commune, EducationalBranch, Payment, EthnicGroup } from "../../app/app.associatios";
 import sequelize from "../../configs/config"
 import ExcelJS from "exceljs";
 const { Op } = require('sequelize');
@@ -43,7 +43,7 @@ export class UploadHistoryModule  {
         }
     }
 
-    static async loadStundents(req: Request, res: Response){
+    static async loadStudents(req: Request, res: Response){
 
         const t = await sequelize.transaction();
 
@@ -72,18 +72,37 @@ export class UploadHistoryModule  {
             let rowCreated = 0;
             
             for (let row of excelData.data) {
-                //REGISTRAR - ESTUDIANTE
                 //Validar que el plan de estudio existe
                 const studyPlan: any = await StudyPlan.findOne({
                     where: {
-                        code: row.study_plan
+                        code: row.code_study_plan
                     },
                     transaction: t
                 });
                 if (!studyPlan) {
                     throw new Error(`Unknown study plan code: ${row.study_plan}` );
                 }
-
+                //REGISTRAR - ETNIA
+                //Validar que el grupo etnico exista
+                let ethnicGroup: any = await EthnicGroup.findOne({
+                    where: {
+                        code: row.code_ethnic
+                    },
+                    transaction: t
+                })
+                //Obtener datos del excel del grupo etnico
+                const ethnicGroupData = {
+                    code: row.code_ethnic,
+                    name: row.name_ethnic
+                }
+                //Registrar grupo etnico en caso de que no exista
+                if (!ethnicGroup) {
+                    ethnicGroup = await EthnicGroup.create(ethnicGroupData, { transaction: t });
+                } else { //Actualizar datos del grupo etnico en caso de que si exista
+                    ethnicGroup.update(ethnicGroupData, { transaction: t });
+                }
+                
+                //REGISTRAR - ESTUDIANTE
                 //Validar que el estudiante no existe
                 const student: any = await User.findOne({
                     where: {
@@ -92,7 +111,7 @@ export class UploadHistoryModule  {
                     transaction: t
                 });
 
-
+                //Obtener los datos del excel del estudiante
                 const studentData = {
                     name: row.name_student,
                     pat_last_name: row.pat_last_name_student,
@@ -102,37 +121,41 @@ export class UploadHistoryModule  {
                     phone: row.phone_student,
                     address: row.address_student,
                     email: row.email_student,
-
-                    study_plan_id: studyPlan.id
+                    social_name: row.social_name,
+                    sex: row.sex_student,
+                    study_plan_id: studyPlan.id,
+                    ethnic_group: ethnicGroup.id
                 }
-
-                // Crear estudiante (si el rut no existe en la bd)
+                //Registrar estudiante en caso de que no exista
                 if (!student) {
-                    await User.create(studentData, { transaction: t });
+                    const studentCreated = await User.create(studentData, { transaction: t });
                     rowCreated++;
-                } else {// Actualizar datos del estudiante (si el rut existe en la bd)
+                } else {// Actualizar datos del estudiante en caso de que si exista
                     await student.update(studentData, { transaction: t })
                 }
             }
-
+            
+            //REGISTRAR - ARCHIVO IMPORTADO
+            //Obtener datos del archivo
             const fileData = {
                 name: name,
                 upload_date: new Date(),
                 file: req.file,
-                number_rows: rowCreated,
+                number_rows: excelData.numberRows,
                 file_type: "Estudiantes",
-                user_id: 4 //Cambiar por el usuario que inicio sesion
+                user_id: 1 //Cambiar por el usuario que inicio sesion
             };
-            await UploadHistory.create(fileData, { transaction: t })
+            //Registrar archivo importado
+            const file = await UploadHistory.create(fileData, { transaction: t });
+            //Guardar estado
+            const commit = await t.commit();
 
-            await t.commit();
 
             return res.status(200).json({
                 message: "Data was loaded successfully",
                 rowCreated: rowCreated,
-                total: rowCreated
-            });
-            
+                total: excelData.numberRows,
+            });  
         } catch (error: any) {
             await t.rollback();
             console.error(error);

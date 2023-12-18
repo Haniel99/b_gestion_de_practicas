@@ -98,6 +98,10 @@ User.belongsTo(EthnicGroup, { foreignKey: "ethnic_group_id", as: "ethnicGroup" }
 Establishment.hasMany(UserEstablishment, { foreignKey: "establishment_id", as: "users" });
 UserEstablishment.belongsTo(Establishment, { foreignKey: "establishment_id", as: "establishment" });
 
+// Relacion usuario (profesores) - carrera (n-m)
+User.belongsToMany(Career, { through: "teacher_in_career", as: "careers" });
+Career.belongsToMany(User, { through: "teacher_in_career", as: "teachers" });
+
 export {
   User,
   Rol,

@@ -10,4 +10,8 @@ router.post("/index",
     TeacherModule.index
 );
   
+router.post("/create",
+    [],
+    TeacherModule.create
+);
   export { router };
