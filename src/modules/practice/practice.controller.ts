@@ -198,43 +198,58 @@ export class PracticeModule {
   static async update(req: Request, res: Response) {
     try {
       const practiceId = req.params.id;
-      const { teacherId, type } = req.body;
+      const data = req.body;
       const usuarioId = 2 //Id usuario que inicio sesion
 
-      //Validar que el profesor pertenezca al coordinador
-      const profesor = await User.findOne({
-        include: [
-          {
-            model: Career,
-            as: "careers"
+      if (data.establishment_id) { //ACTUALIZAR - PRACTICA (ESTABLECIMIENTO)
+        //Validar que el establecimiento exista
+        const establishment = await Establishment.findByPk(data.establishment_id);
+        if (!establishment) {
+          return res.status(401).json({
+            message: "There is no establishment"
+          }); 
+        }
+        //Actualizar practica
+        const practiceUpdated = await Practice.update(data, {
+          where: {
+            id: practiceId
           }
-        ],
-        where: {
-          id: teacherId,
-          '$careers.user_id$': usuarioId
-        }
-      });
-      if (!profesor) {
-        return res.status(401).json({
-          message: "The coordinator does not have this teacher registered"
+        })
+
+      } else if (data.supervisor_id || data.collaborating_teacher_id || data.workshop_teacher_id) { //ACTUALIZAR - PRACTICA (PROFESOR IDS)
+        //Buscar el primer elemento del objeto
+        const teacherId = data[Object.keys(data)[0]];
+        //Validar que el profesor pertenezca al coordinador
+        const profesor = await User.findOne({
+          include: [
+            {
+              model: Career,
+              as: "careers"
+            }
+          ],
+          where: {
+            id: teacherId,
+            '$careers.user_id$': usuarioId
+          }
         });
-      }
-      //Tipos de profesores
-      const teachers: any = {
-        1: "supervisor_id",
-        2: "collaborating_teacher_id",
-        3: "workshop_teacher_id"
-      }
-      //Identificar el tipo de profesor a actualizar en la practica
-      let practiceData: any = {};
-      practiceData[teachers[type]] = teacherId;
-      //Actualizar practica
-      const practiceUpdated = await Practice.update(practiceData, {
-        where: {
-          id: practiceId
+        if (!profesor) {
+          return res.status(401).json({
+            message: "The coordinator does not have this teacher registered"
+          });
         }
-      })
+        //Actualizar practica
+        const practiceUpdated = await Practice.update(data, {
+          where: {
+            id: practiceId
+          }
+        })
+      } else {
+        return res.status(401).json({
+          message: "There is no data to update"
+        })
+      }
   
+
       return res.status(200).json({
         msg: "Successfully updated data",
       });
