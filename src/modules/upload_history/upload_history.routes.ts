@@ -14,9 +14,9 @@ router.post("/load-students", [
     upload.single("file"),
 ], UploadHistoryModule.loadStundents);
 
-/* router.post("/load-establishments", [
+router.post("/load-establishments", [
     upload.single("file"),
-], UploadHistoryModule.loadEstablishment); */
+], UploadHistoryModule.loadEstablishment);
 
 router.post("/load-practices", [
     upload.single("file"),
@@ -25,5 +25,9 @@ router.post("/load-practices", [
 router.post("/load-subjects", [
     upload.single("file"),
 ], UploadHistoryModule.loadSubjects);
+
+router.post("/load-careers", [
+    upload.single("file"),
+], UploadHistoryModule.loadCareers);
 
 export { router };

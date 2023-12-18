@@ -30,7 +30,7 @@ User.init(
     phone: DataTypes.STRING,
     address: DataTypes.STRING,
     email: DataTypes.STRING,
-    company_name: DataTypes.STRING,
+    social_name: DataTypes.STRING,
     sex: DataTypes.TINYINT,
     years_experience: DataTypes.INTEGER,
     type_teacher: DataTypes.TINYINT,
