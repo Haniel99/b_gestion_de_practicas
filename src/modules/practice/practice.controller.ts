@@ -198,7 +198,7 @@ export class PracticeModule {
   static async update(req: Request, res: Response) {
     try {
       const practiceId = req.params.id;
-      const { teacherId } = req.body;
+      const { teacherId, type } = req.body;
       const usuarioId = 2 //Id usuario que inicio sesion
 
       //Validar que el profesor pertenezca al coordinador
@@ -219,14 +219,24 @@ export class PracticeModule {
           message: "The coordinator does not have this teacher registered"
         });
       }
+      //Tipos de profesores
+      const teachers: any = {
+        1: "supervisor_id",
+        2: "collaborating_teacher_id",
+        3: "workshop_teacher_id"
+      }
+      //Identificar el tipo de profesor a actualizar en la practica
+      let practiceData: any = {};
+      practiceData[teachers[type]] = teacherId;
       //Actualizar practica
-
+      const practiceUpdated = await Practice.update(practiceData, {
+        where: {
+          id: practiceId
+        }
+      })
   
-
-
       return res.status(200).json({
-        status: true,
-        message: "Successfully updated data",
+        msg: "Successfully updated data",
       });
     } catch (error: any) {
       console.error(error);

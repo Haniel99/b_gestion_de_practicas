@@ -7,14 +7,14 @@ const router = Router();
 
 
 
-/*
+
 router.put("/update/:id",
-[
-  
-],
-PracticeModule.update
+  [
+    
+  ],
+  PracticeModule.update
 );
-*/
+
 
 router.post("/index",
   [

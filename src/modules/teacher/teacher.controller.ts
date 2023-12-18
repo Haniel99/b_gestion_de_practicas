@@ -9,14 +9,14 @@ export default class TeacherModule {
     static async index(req: Request, res: Response) {
         try {
             //Id del coordinador
-            const id = 2
+            const usuarioId = 2
 
+            //Validar que el coordinador tenga asociado una carrera
             const career = await Career.findOne({
                 where: {
-                    user_id: id
+                    user_id: usuarioId
                 }
             })
-
             if (!career) {
                 return res.status(401).json({
                     msg: "There is no assigned career"
@@ -24,27 +24,49 @@ export default class TeacherModule {
             }
             
             let opts = lazyTable(req.body);
-            opts.attributes = [
-                "id",
-                "name",
-                "pat_last_name",
-                "mat_last_name",
-                "rut",
-                "check_digit",
-                "phone",
-                "address",
-                "email",
-                "type_teacher"
+            opts.include = [
             ]
 
-            
-
-            
         } catch (error: any) {
             console.error(error);
             return res.status(500).json({
             msg: "Error en el servidor, comuniquese con el administrador",
             error: error.message,
+            });
+        }
+    }
+
+    static async teachersByCoordinator(req: Request, res:Response) {
+        try {
+            const usuarioId = 2; //Id del coordinador que inicio sesion
+
+            let opts = lazyTable(req.body);
+            opts.include = [
+                {
+                    attributes: [],
+                    model: Career,
+                    as: "careers",
+                    where: {
+                        user_id: usuarioId
+                    }
+                }
+            ]
+
+            const teachers = await User.findAndCountAll(opts);
+
+            return res.status(200).json({
+                message: "Successfuly query",
+                response: {
+                    count: teachers.count,
+                    rows: teachers.rows
+                  },
+            })
+            
+        } catch (error: any) {
+            console.error(error);
+            return res.status(500).json({
+                msg: "Error en el servidor, comuniquese con el administrador",
+                error: error.message,
             });
         }
     }
