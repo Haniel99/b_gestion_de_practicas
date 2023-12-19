@@ -24,7 +24,11 @@ UploadHistory.belongsTo(User, { foreignKey: "user_id", as: "user" });
 
 // Relacion usuario (coordinador) - carrera (1-1)
 Career.belongsTo(User, { foreignKey: "user_id", as: "coordinator" })
-User.hasOne(Career, { foreignKey: "user_id", as: "career" })
+User.hasOne(Career, { foreignKey: "user_id", as: "careerCoordinator" })
+
+// Relacion carrera - usuario (estudiantes) (1-N)
+Career.hasMany(User, { foreignKey: "career_id", as: "students" })
+User.belongsTo(Career, { foreignKey: "career_id", as: "careerStudent" })
 
 // Relacion usuario (estudiante) - practica (1-n)
 User.hasMany(Practice, { foreignKey: "student_id", as: "studentPractices" });

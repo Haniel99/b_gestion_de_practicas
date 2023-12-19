@@ -5,6 +5,7 @@ import sequelize from "../../configs/config"
 import ExcelJS from "exceljs";
 const { Op } = require('sequelize');
 import { IStudyPlan } from "../../interfaces/IModules/study_plan.interface";
+import formatPhone from "../../helpers/formattophone";
 
 export class UploadHistoryModule  {
     constructor(){}
@@ -72,6 +73,17 @@ export class UploadHistoryModule  {
             let rowCreated = 0;
             
             for (let row of excelData.data) {
+                //Validar que la carrera existe
+                const career = await Career.findOne({
+                    where: {
+                        code: row.code_career
+                    },
+                    transaction: t
+                })
+                if (!career) {
+                    throw new Error(`Unknown career code: ${row.code_career}` );
+                }
+
                 //Validar que el plan de estudio existe
                 const studyPlan: any = await StudyPlan.findOne({
                     where: {
@@ -80,7 +92,7 @@ export class UploadHistoryModule  {
                     transaction: t
                 });
                 if (!studyPlan) {
-                    throw new Error(`Unknown study plan code: ${row.study_plan}` );
+                    throw new Error(`Unknown study plan code: ${row.code_study_plan}` );
                 }
                 //REGISTRAR - ETNIA
                 //Validar que el grupo etnico exista
@@ -106,7 +118,7 @@ export class UploadHistoryModule  {
                 //Validar que el estudiante no existe
                 const student: any = await User.findOne({
                     where: {
-                        rut: row.rut
+                        rut: row.rut_student
                     },
                     transaction: t
                 });
@@ -115,16 +127,17 @@ export class UploadHistoryModule  {
                 const studentData = {
                     name: row.name_student,
                     pat_last_name: row.pat_last_name_student,
-                    mat_lat_name: row.mat_last_name_student,
+                    mat_last_name: row.mat_last_name_student,
                     rut: row.rut_student,
                     check_digit: row.check_digit_student,
-                    phone: row.phone_student,
+                    phone: formatPhone(row.phone_student),
                     address: row.address_student,
                     email: row.email_student,
-                    social_name: row.social_name,
+                    social_name: row.social_name_student,
                     sex: row.sex_student,
                     study_plan_id: studyPlan.id,
-                    ethnic_group: ethnicGroup.id
+                    ethnic_group_id: ethnicGroup.id,
+                    career_id: career.id
                 }
                 //Registrar estudiante en caso de que no exista
                 if (!student) {
@@ -495,73 +508,36 @@ export class UploadHistoryModule  {
                 });
             }
 
+            return res.json(excelData.data);
+
             let rowCreated = 0;
+            let lastSubject = null;
             
             for (let row of excelData.data) {
-                const studyPlan: any = await StudyPlan.findOne({
-                    where: {
-                        code: row.code_study_plan
-                    },
-                    transaction: t
-                });
-
-                if (!studyPlan) {
-                    throw new Error(`Unknown study plan code: ${row.code_study_plan}`);
-                }
-
-                // Conversion de fechas
-                if (row.start_date) {
-                    row.start_date = row.start_date.toISOString().split('T')[0];
-                }
-                if (row.end_date) {
-                    row.end_date = row.end_date.toISOString().split('T')[0];
-                }
-
-                const subjectData = {
-                    name: row.name,
-                    code: row.code_subject,
-                    description: row.description,
-                    type: row.type,
-                    practice_number: row.practice_number,
-                    total_hours: row.total_hours,
-                    start_date: row.start_date,
-                    end_date: row.end_date,
-                    study_plan_id: studyPlan.id
-                };
-
-                const subject = await Subject.findOne({
-                    where: {
-                        code: row.code_subject
-                    },
-                    transaction: t
-                });
-
-                // Crear asignatira (si el codigo no existe en la bd)
-                if (!subject) {
-                    await Subject.create(subjectData, { transaction: t });
-                    rowCreated++;
-                } else {// Actualizar datos de la asignatura (si el codigo existe en la bd)
-                    await subject.update(subjectData, { transaction: t });
-                }
-
+                //REGISTRAR - ASIGNATURA
+                //Validar 
             }
 
+            //REGISTRAR - ARCHIVO IMPORTADO
+            //Obtener datos del archivo
             const fileData = {
                 name: name,
                 upload_date: new Date(),
                 file: req.file,
-                number_rows: rowCreated,
-                file_type: "Asignaturas",
-                user_id: 4 //Cambiar por el usuario que inicio sesion
+                number_rows: excelData.numberRows,
+                file_type: "Carreras",
+                user_id: 1 //Cambiar por el usuario que inicio sesion
             };
-            await UploadHistory.create(fileData, { transaction: t })
-
+            //Registrar archivo importado
+            const file = await UploadHistory.create(fileData, { transaction: t });
+            //Guardar estado
             const commit = await t.commit();
+
 
             return res.status(200).json({
                 message: "Data was loaded successfully",
                 rowCreated: rowCreated,
-                total: rowCreated
+                total: excelData.numberRows,
             });
             
         } catch (error: any) {

@@ -55,7 +55,7 @@ export class EstablishmentModule {
     try {
         const id = req.params.id;
 
-        const establishment = await Establishment.findOne({
+        const establishment = await Establishment.findByPk(id, {
             include: [
                 {
                     model: EducationalBranch,
@@ -70,9 +70,6 @@ export class EstablishmentModule {
                     as: "commune"
                 }
             ],
-            where: {
-                id: id
-            }
         });
 
         if (!establishment) {
@@ -93,5 +90,17 @@ export class EstablishmentModule {
             error: error.message,
         });
     }
+  }
+
+  static async createUser(req: Request, res: Response) {
+    try {
+        
+    } catch (error) {
+        
+    }
+  }
+
+  static async deleteUser(req: Request, res: Response) {
+
   }
 }
