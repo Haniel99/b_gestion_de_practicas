@@ -13,7 +13,7 @@ User.init(
       type: DataTypes.STRING,
       validate: {
         len: {
-          args: [8, 8],
+          args: [7, 8],
           msg: 'The rut must be 8 digits long'
         }
       }
@@ -41,7 +41,8 @@ User.init(
     last_access: DataTypes.DATE,
     rol_id: DataTypes.INTEGER,
     study_plan_id: DataTypes.INTEGER,
-    ethnic_group_id: DataTypes.INTEGER
+    ethnic_group_id: DataTypes.INTEGER,
+    career_id: DataTypes.INTEGER
   },
   {
     sequelize,

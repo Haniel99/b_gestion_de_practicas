@@ -7,5 +7,6 @@ export const routes = [
     "upload_history",
     "worksheet",
     "teacher",
-    "establishment"
+    "establishment",
+    "student"
 ];

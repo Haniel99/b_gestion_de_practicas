@@ -61,11 +61,7 @@ export class PracticeModule {
         },
       ];
 
-      console.log("aquii 1")
-
       const practices = await Practice.findAndCountAll(opts);
-
-      console.log("aquii 2")
 
       //Filtros
       let filters: any = {};
@@ -73,8 +69,6 @@ export class PracticeModule {
         filters.subjects = await getFilterSubjects();
         filters.establishments = await getFilterEstablishments();
         filters.studyPlans = await getFilterStudyPlans();
-
-        console.log("aquii 3") 
 
       return res.status(200).json({
         message: "Successfuly query",

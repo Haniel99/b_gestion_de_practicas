@@ -8,25 +8,7 @@ export default class TeacherModule {
     //Obtener listado de todos los profesores con su coordinador correspondiente
     static async index(req: Request, res: Response) {
         try {
-            //Id del coordinador
-            const usuarioId = 2
-
-            //Validar que el coordinador tenga asociado una carrera
-            const career = await Career.findOne({
-                where: {
-                    user_id: usuarioId
-                }
-            })
-            if (!career) {
-                return res.status(401).json({
-                    msg: "There is no assigned career"
-                })
-            }
-            
-            let opts = lazyTable(req.body);
-            opts.include = [
-            ]
-
+            return null;
         } catch (error: any) {
             console.error(error);
             return res.status(500).json({
@@ -36,23 +18,16 @@ export default class TeacherModule {
         }
     }
 
-    /* static async view(req: Request, res: Response) {
+    static async view(req: Request, res: Response) {
         try {
-            //Validar que el coordinador tenga asociado una carrera
-            const career = await Career.findOne({
-                where: {
-                    user_id: usuarioId
-                }
+            const { id } = req.params;
+
+            const teacher = await User.findByPk(id);
+
+            return res.status(200).json({
+                msg: "Successfuly query",
+                response: teacher
             })
-            if (!career) {
-                return res.status(401).json({
-                    msg: "There is no assigned career"
-                })
-            }
-            
-            let opts = lazyTable(req.body);
-            opts.include = [
-            ]
 
         } catch (error: any) {
             console.error(error);
@@ -62,7 +37,7 @@ export default class TeacherModule {
             });
         }
     }
- */
+
     static async teachersByCoordinator(req: Request, res:Response) {
         try {
             const usuarioId = 2; //Id del coordinador que inicio sesion
