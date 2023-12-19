@@ -12,12 +12,7 @@ import {
   User,
 } from "../../app/app.associatios";
 import { Op } from "sequelize";
-import {
-  getFilterPracticeNumbers,
-  getFilterSubjects,
-  getFilterEstablishments,
-  getFilterStudyPlans,
-} from "../../helpers/getfilters";
+import { getFilterPracticeNumbers, getFilterSubjects, getFilterEstablishments, getFilterStudyPlans } from "../../helpers/getfilters";
 
 export class PracticeModule {
   constructor() {}
@@ -40,51 +35,64 @@ export class PracticeModule {
         {
           model: Subject,
           as: "subject",
-          attributes: ["code", "name", "type", "practice_number"],
+          attributes: [
+            "code",
+            "name",
+            "type",
+            "practice_number"],
         },
         {
           model: StudyPlan,
           as: "studyPlan",
-          attributes: ["code", "name", "year", "version"],
+          attributes: [
+            "code",
+            "name",
+            "year",
+            "version"
+          ]
         },
         {
           model: Establishment,
           as: "establishment",
-          attributes: ["code", "name"],
+          attributes: [
+            "code",
+            "name"
+          ],
         },
       ];
 
-      console.log("aquii 1");
+      console.log("aquii 1")
 
       const practices = await Practice.findAndCountAll(opts);
 
-      console.log("aquii 2");
+      console.log("aquii 2")
 
       //Filtros
       let filters: any = {};
-      filters.practiceNumbers = await getFilterPracticeNumbers();
-      filters.subjects = await getFilterSubjects();
-      filters.establishments = await getFilterEstablishments();
-      filters.studyPlans = await getFilterStudyPlans();
+        filters.practiceNumbers = await getFilterPracticeNumbers();
+        filters.subjects = await getFilterSubjects();
+        filters.establishments = await getFilterEstablishments();
+        filters.studyPlans = await getFilterStudyPlans();
 
-      console.log("aquii 3");
+        console.log("aquii 3") 
 
       return res.status(200).json({
         message: "Successfuly query",
         response: {
           filters: filters,
           count: practices.count,
-          rows: practices.rows,
+          rows: practices.rows
         },
-      });
-    } catch (error: any) {
+      })
+
+    } catch (error:any) {
       console.error(error);
       return res.status(500).json({
         msg: "Error en el servidor, comuniquese con el administrador",
         error: error.message,
       });
     }
-  }
+  };
 
   static async view(req: Request, res: Response) {
     try {
@@ -102,7 +110,7 @@ export class PracticeModule {
               "rut",
               "phone",
               "address",
-              "email",
+              "email"
             ],
             include: [
               {
@@ -126,13 +134,13 @@ export class PracticeModule {
           {
             model: Establishment,
             as: "establishment",
-            attributes: ["name", "code", "address", "phone", "email"],
+            attributes: ["name", "code", "address", "phone", "email"]
           },
         ],
       });
 
-      const practice = await Practice.findByPk(id, {
-        include: [
+      const practice = await Practice.findByPk(id,{
+        include:[
           {
             model: Subject,
             as: "subject",
@@ -141,14 +149,13 @@ export class PracticeModule {
             model: StudyPlan,
             as: "studyPlan",
           },
-        ],
+        ]
       });
 
       let profesores = [];
       if (queryResult.supervisor) {
         profesores.push({
           type: "Profesor supervisor",
-          teacherType: 1,
           data: queryResult.supervisor,
         });
       }
@@ -156,7 +163,6 @@ export class PracticeModule {
       if (queryResult.workshopteacher) {
         profesores.push({
           type: "Profesor de taller",
-          teacherType: 2,
           data: queryResult.workshopteacher,
         });
       }
@@ -164,17 +170,10 @@ export class PracticeModule {
       if (queryResult.collaboratingTeacher) {
         profesores.push({
           type: "Profesor colaborador",
-          teacherType: 3,
           data: queryResult.collaboratingTeacher,
         });
       }
-      let establishment: any = [];
-      if (queryResult.establishment) {
-        establishment.push({
-          type: "Datos del establecimiento",
-          data: queryResult.establishment,
-        });
-      }
+
       return res.json({
         status: true,
         message: "Seccessful query",
@@ -182,43 +181,42 @@ export class PracticeModule {
           [{ type: "Datos del alumno", data: queryResult.student }],
           [{ type: "Datos de practica", data: practice }],
           profesores,
-          establishment,
+          [
+            {
+              type: "Datos del establecimiento",
+              data: queryResult.establishment,
+            },
+          ],
+          
         ],
       });
     } catch (error) {
       errorHandler(res, error);
-    }
-  }
+    } 
+  };
 
   static async update(req: Request, res: Response) {
     try {
       const practiceId = req.params.id;
       const data = req.body;
-      const usuarioId = req.user; //Id usuario que inicio sesion
+      const usuarioId = 2 //Id usuario que inicio sesion
 
-      if (data.establishment_id) {
-        //ACTUALIZAR - PRACTICA (ESTABLECIMIENTO)
+      if (data.establishment_id) { //ACTUALIZAR - PRACTICA (ESTABLECIMIENTO)
         //Validar que el establecimiento exista
-        const establishment = await Establishment.findByPk(
-          data.establishment_id
-        );
+        const establishment = await Establishment.findByPk(data.establishment_id);
         if (!establishment) {
           return res.status(401).json({
-            message: "There is no establishment",
-          });
+            message: "There is no establishment"
+          }); 
         }
         //Actualizar practica
-        await Practice.update(data, {
+        const practiceUpdated = await Practice.update(data, {
           where: {
-            id: practiceId,
-          },
-        });
-      } else if (
-        data.supervisor_id ||
-        data.collaborating_teacher_id ||
-        data.workshop_teacher_id
-      ) {
-        //ACTUALIZAR - PRACTICA (PROFESOR IDS)
+            id: practiceId
+          }
+        })
+
+      } else if (data.supervisor_id || data.collaborating_teacher_id || data.workshop_teacher_id) { //ACTUALIZAR - PRACTICA (PROFESOR IDS)
         //Buscar el primer elemento del objeto
         const teacherId = data[Object.keys(data)[0]];
         //Validar que el profesor pertenezca al coordinador
@@ -226,30 +224,31 @@ export class PracticeModule {
           include: [
             {
               model: Career,
-              as: "careers",
-            },
+              as: "careers"
+            }
           ],
           where: {
             id: teacherId,
-            "$careers.user_id$": usuarioId,
-          },
+            '$careers.user_id$': usuarioId
+          }
         });
         if (!profesor) {
           return res.status(401).json({
-            message: "The coordinator does not have this teacher registered",
+            message: "The coordinator does not have this teacher registered"
           });
         }
         //Actualizar practica
-        await Practice.update(data, {
+        const practiceUpdated = await Practice.update(data, {
           where: {
-            id: practiceId,
-          },
-        });
+            id: practiceId
+          }
+        })
       } else {
         return res.status(401).json({
-          message: "There is no data to update",
-        });
+          message: "There is no data to update"
+        })
       }
+  
 
       return res.status(200).json({
         msg: "Successfully updated data",
@@ -267,9 +266,11 @@ export class PracticeModule {
     try {
       const { id } = req.params;
       const parseId = parseInt(id);
-
+           
       let opts = lazyTable(req.body);
-      opts.attributes = ["id"];
+      opts.attributes = [
+        "id",
+      ];
       opts.include = [
         {
           model: User,
@@ -285,12 +286,19 @@ export class PracticeModule {
         {
           model: Subject,
           as: "subject",
-          attributes: ["name", "type", "practice_number"],
+          attributes: [
+            "name",
+            "type",
+            "practice_number"],
         },
         {
           model: StudyPlan,
           as: "studyPlan",
-          attributes: ["name", "year", "version"],
+          attributes: [
+            "name",
+            "year",
+            "version"
+          ]
         },
         {
           model: Establishment,
@@ -302,14 +310,17 @@ export class PracticeModule {
       //Agregar la carrera por la cual se va filtrar, junto con los filtros de opts
       opts.where = {
         ...opts.where,
-        career_id: id,
-      };
+        career_id: id
+      }
 
       const practices = await Practice.findAndCountAll(opts);
 
       //Datos de la carrera
       const career = await Career.findByPk(id, {
-        attributes: ["code", "name"],
+        attributes: [
+          "code",
+          "name",
+        ]
       });
 
       //Filtros
@@ -317,7 +328,7 @@ export class PracticeModule {
       const subjectsFilter = await getFilterSubjects(parseId);
       const establishmentsFilter = await getFilterEstablishments(parseId);
       const studyPlansFilter = await getFilterStudyPlans(parseId);
-
+      
       return res.status(200).json({
         message: "Successfuly query",
         response: {
@@ -326,12 +337,13 @@ export class PracticeModule {
             practice_numbers: practiceNumbersFilter,
             subjects: subjectsFilter,
             establishments: establishmentsFilter,
-            study_plans: studyPlansFilter,
+            study_plans: studyPlansFilter
           },
           count: practices.count,
-          rows: practices.rows,
+          rows: practices.rows
         },
       });
+
     } catch (error: any) {
       console.error(error);
       return res.status(500).json({
@@ -339,53 +351,8 @@ export class PracticeModule {
         error: error.message,
       });
     }
-  }
-  static async deleteEstablishment(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      const practice: any = await Practice.findByPk(id);
-      if (!practice) {
-        return res.status(400).send("Id dont exist");
-      }
+  };
 
-      practice.establishment_id = null;
-      await practice.save();
-      return res.status(200).json({
-        msg: "Successfully updated data",
-      });
-    } catch (error) {
-      errorHandler(res);
-    }
-  }
-  static async deleteTeacher(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      const data = req.body; //Tipo de profesor
-      const practice: any = await Practice.findByPk(id);
-      if (!practice) {
-        return res.status(400).send("Error not found");
-      }
-
-      if (data.teacherType == 1) {
-        practice.supervisor_id = null;
-      }
-
-      if (data.teacherType == 2) {
-        practice.workshop_teacher_id = null;
-      }
-
-      if (data.teacherType == 3) {
-        practice.collaborating_teacher_id = null;
-      }
-      await practice.save();
-
-      return res.status(200).json({
-        msg: "Successfully updated data",
-      });
-    } catch (error) {
-      errorHandler(res);
-    }
-  }
   static async practicesByCordinatorId(req: Request, res: Response) {
     try {
       const { id } = req.params;
@@ -394,14 +361,20 @@ export class PracticeModule {
 
       //Datos de la carrera a la que pertenece el coordinador
       const career = await Career.findOne({
-        attributes: ["id", "code", "name"],
+        attributes: [
+          "id",
+          "code",
+          "name",
+        ],
         where: {
-          user_id: id,
-        },
+          user_id: id
+        }
       });
-
+      
       let opts = lazyTable(req.body);
-      opts.attributes = ["id"];
+      opts.attributes = [
+        "id",
+      ];
       opts.include = [
         {
           model: User,
@@ -417,25 +390,37 @@ export class PracticeModule {
         {
           model: Subject,
           as: "subject",
-          attributes: ["code", "name", "type", "practice_number"],
+          attributes: [
+            "code",
+            "name",
+            "type",
+            "practice_number"],
         },
         {
           model: StudyPlan,
           as: "studyPlan",
-          attributes: ["code", "name", "year", "version"],
+          attributes: [
+            "code",
+            "name",
+            "year",
+            "version"
+          ]
         },
         {
           model: Establishment,
           as: "establishment",
-          attributes: ["code", "name"],
+          attributes: [
+            "code",
+            "name"
+          ],
         },
       ];
 
       //Agregar la carrera por la cual se va filtrar, junto con los filtros de opts
       opts.where = {
         ...opts.where,
-        career_id: career?.id,
-      };
+        career_id: career?.id
+      }
 
       const practices = await Practice.findAndCountAll(opts);
 
@@ -448,15 +433,17 @@ export class PracticeModule {
         filters.studyPlans = await getFilterStudyPlans(career.id);
       }
 
+      
       return res.status(200).json({
         message: "Successfuly query",
         response: {
           career: career,
           filters: filters,
           count: practices.count,
-          rows: practices.rows,
+          rows: practices.rows
         },
       });
+
     } catch (error: any) {
       console.error(error);
       return res.status(500).json({

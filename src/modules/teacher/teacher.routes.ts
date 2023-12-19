@@ -8,7 +8,11 @@ const router = Router();
 /* router.post("/index",
     [],
     TeacherModule.index
+<<<<<<< HEAD
 ); */
+=======
+);
+>>>>>>> parent of 122617b (cambios en practica)
   
 router.post("/create",
     [tokenValidator],
@@ -24,7 +28,5 @@ router.post("/teachers-by-coordinator",
   [tokenValidator],
   TeacherModule.teachersByCoordinator
 )
-
-router.put("/update/:id", [ tokenValidator ], TeacherModule.update);
 
   export { router };
