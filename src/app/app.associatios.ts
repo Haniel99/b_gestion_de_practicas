@@ -13,7 +13,6 @@ import Province from "../modules/establishment/province.model";
 import Region from "../modules/establishment/region.model";
 import EthnicGroup from "../modules/user/ethnic_group.model";
 import UserEstablishment from "../modules/establishment/user_establishment.model";
-import SubjectInStudyPlan from "../modules/practice/subject_study_plan.model";
 
 // Relacion rol - usuario (1-n)
 Rol.hasMany(User, { foreignKey: "rol_id", as: "users" });
@@ -25,11 +24,7 @@ UploadHistory.belongsTo(User, { foreignKey: "user_id", as: "user" });
 
 // Relacion usuario (coordinador) - carrera (1-1)
 Career.belongsTo(User, { foreignKey: "user_id", as: "coordinator" })
-User.hasOne(Career, { foreignKey: "user_id", as: "careerCoordinator" })
-
-// Relacion carrera - usuario (estudiantes) (1-N)
-Career.hasMany(User, { foreignKey: "career_id", as: "students" })
-User.belongsTo(Career, { foreignKey: "career_id", as: "careerStudent" })
+User.hasOne(Career, { foreignKey: "user_id", as: "career" })
 
 // Relacion usuario (estudiante) - practica (1-n)
 User.hasMany(Practice, { foreignKey: "student_id", as: "studentPractices" });
@@ -72,8 +67,8 @@ Subject.hasMany(Practice, { foreignKey: "subject_id", as: "practices" });
 Practice.belongsTo(Subject, { foreignKey: "subject_id", as: "subject" });
 
 // Relacion plan de estudio - asignatura (n-m)
-StudyPlan.belongsToMany(Subject, { through: SubjectInStudyPlan, foreignKey: "study_plan_id", as: "subjects" });
-Subject.belongsToMany(StudyPlan, { through: SubjectInStudyPlan, foreignKey: "subject_id", as: "studyPlans" });
+StudyPlan.belongsToMany(Subject, { through: "study_plan_subject", foreignKey: "study_plan_id", as: "subjects" });
+Subject.belongsToMany(StudyPlan, { through: "study_plan_subject", foreignKey: "subject_id", as: "studyPlans" });
 
 // Relacion carrera - plan de estudio (n-m)
 Career.belongsToMany(StudyPlan, { through: "career_study_plan", foreignKey: "career_id", as: "studyPlans" });
@@ -122,6 +117,5 @@ export {
   Province,
   Region,
   EthnicGroup,
-  UserEstablishment,
-  SubjectInStudyPlan
+  UserEstablishment
 };

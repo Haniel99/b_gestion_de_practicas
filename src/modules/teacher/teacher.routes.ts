@@ -5,19 +5,14 @@ import TeacherModule from "./teacher.controller";
 
 const router = Router();
 
-/* router.post("/index",
+router.post("/index",
     [],
     TeacherModule.index
-); */
-  
+);
+router.get('/view/:id', [ tokenValidator], TeacherModule.view )  
 router.post("/create",
     [tokenValidator],
     TeacherModule.create
-);
-
-router.post("/view/:id",
-    [],
-    TeacherModule.view
 );
 
 router.post("/teachers-by-coordinator",

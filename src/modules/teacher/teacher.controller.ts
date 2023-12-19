@@ -36,14 +36,21 @@ export default class TeacherModule {
 
   /* static async view(req: Request, res: Response) {
         try {
-            const { id } = req.params;
-
-            const teacher = await User.findByPk(id);
-
-            return res.status(200).json({
-                msg: "Successfuly query",
-                response: teacher
+            //Validar que el coordinador tenga asociado una carrera
+            const career = await Career.findOne({
+                where: {
+                    user_id: usuarioId
+                }
             })
+            if (!career) {
+                return res.status(401).json({
+                    msg: "There is no assigned career"
+                })
+            }
+            
+            let opts = lazyTable(req.body);
+            opts.include = [
+            ]
 
         } catch (error: any) {
             console.error(error);
