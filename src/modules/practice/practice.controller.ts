@@ -104,7 +104,7 @@ export class PracticeModule {
               "rut",
               "phone",
               "address",
-              "email"
+              "email",
             ],
             include: [
               {
@@ -128,13 +128,13 @@ export class PracticeModule {
           {
             model: Establishment,
             as: "establishment",
-            attributes: ["name", "code", "address", "phone", "email"]
+            attributes: ["name", "code", "address", "phone", "email"],
           },
         ],
       });
 
-      const practice = await Practice.findByPk(id,{
-        include:[
+      const practice = await Practice.findByPk(id, {
+        include: [
           {
             model: Subject,
             as: "subject",
@@ -143,13 +143,14 @@ export class PracticeModule {
             model: StudyPlan,
             as: "studyPlan",
           },
-        ]
+        ],
       });
 
       let profesores = [];
       if (queryResult.supervisor) {
         profesores.push({
           type: "Profesor supervisor",
+          teacherType: 1,
           data: queryResult.supervisor,
         });
       }
@@ -157,6 +158,7 @@ export class PracticeModule {
       if (queryResult.workshopteacher) {
         profesores.push({
           type: "Profesor de taller",
+          teacherType: 2,
           data: queryResult.workshopteacher,
         });
       }
@@ -164,10 +166,17 @@ export class PracticeModule {
       if (queryResult.collaboratingTeacher) {
         profesores.push({
           type: "Profesor colaborador",
+          teacherType: 3,
           data: queryResult.collaboratingTeacher,
         });
       }
-
+      let establishment: any = [];
+      if (queryResult.establishment) {
+        establishment.push({
+          type: "Datos del establecimiento",
+          data: queryResult.establishment,
+        });
+      }
       return res.json({
         status: true,
         message: "Seccessful query",
@@ -175,20 +184,14 @@ export class PracticeModule {
           [{ type: "Datos del alumno", data: queryResult.student }],
           [{ type: "Datos de practica", data: practice }],
           profesores,
-          [
-            {
-              type: "Datos del establecimiento",
-              data: queryResult.establishment,
-            },
-          ],
-          
+          establishment,
         ],
       });
     } catch (error) {
       errorHandler(res, error);
-    } 
-  };
-
+    }
+  }
+  
   static async update(req: Request, res: Response) {
     try {
       const practiceId = req.params.id;

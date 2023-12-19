@@ -21,7 +21,7 @@ router.post("/view/:id",
 );
 
 router.post("/teachers-by-coordinator",
-  [],
+  [tokenValidator],
   TeacherModule.teachersByCoordinator
 )
 
