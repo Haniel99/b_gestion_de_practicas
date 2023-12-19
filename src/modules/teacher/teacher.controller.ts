@@ -38,40 +38,39 @@ export default class TeacherModule {
         }
     }
 
-    static async teachersByCoordinator(req: Request, res:Response) {
-        try {
-            const usuarioId = 2; //Id del coordinador que inicio sesion
+    static async teachersByCoordinator(req: Request, res: Response) {
+    try {
+      const usuarioId = req.user; //Id del coordinador que inicio sesion
 
-            let opts = lazyTable(req.body);
-            opts.include = [
-                {
-                    attributes: [],
-                    model: Career,
-                    as: "careers",
-                    where: {
-                        user_id: usuarioId
-                    }
-                }
-            ]
+      let opts = lazyTable(req.body);
+      opts.include = [
+        {
+          attributes: [],
+          model: Career,
+          as: "careers",
+          where: {
+            user_id: usuarioId,
+          },
+        },
+      ];
 
-            const teachers = await User.findAndCountAll(opts);
+      const teachers = await User.findAndCountAll(opts);
 
-            return res.status(200).json({
-                message: "Successfuly query",
-                response: {
-                    count: teachers.count,
-                    rows: teachers.rows
-                  },
-            })
-            
-        } catch (error: any) {
-            console.error(error);
-            return res.status(500).json({
-                msg: "Error en el servidor, comuniquese con el administrador",
-                error: error.message,
-            });
-        }
+      return res.status(200).json({
+        message: "Successfuly query",
+        response: {
+          count: teachers.count,
+          rows: teachers.rows,
+        },
+      });
+    } catch (error: any) {
+      //            console.error(error);
+      return res.status(500).json({
+        msg: "Error en el servidor, comuniquese con el administrador",
+        error: error.message,
+      });
     }
+  }
 
     static async create(req: Request, res: Response) {
         const t = await sequelize.transaction();
