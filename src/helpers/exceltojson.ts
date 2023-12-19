@@ -35,23 +35,9 @@ const translations = [
   },
   // Practicas
   {
-    NOMBRE_ESTUDIANTE: "name_student",
-    APELLIDO_PATERNO_ESTUDIANTE: "pat_last_name_student",
-    APELLIDO_MATERNO_ESTUDIANTE: "mat_last_name_student",
-    RUT_ESTUDIANTE: "rut_student",
-    DV_ESTUDIANTE: "check_digit_student",
-    CODIGO_PLAN_ESTUDIO: "code_study_plan",
-    CODIGO_PRACTICA: "code_practice",
-    ESTADO: "status",
-    FECHA_INICIO_PRACTICA: "start_date",
-    FECHA_TERMINO_PRACTICA: "end_date",
-    CODIGO_ASIGNATURA: "code_subject",
-    CODIGO_ESTABLECIMIENTO: "code_establishment",
-    NOMBRE_SUPERVISOR: "name_supervisor",
-    APELLIDO_PATERNO_SUPERVISOR: "pat_last_name_supervisor",
-    APELLIDO_MATERNO_SUPERVISOR: "mat_last_name_supervisor",
-    RUT_SUPERVISOR: "rut_supervisor",
-    DV_SUPERVISOR: "check_digit_supervisor",
+    PER_NRUT: "rut_student",
+    ASI_CODIGO: "code_subject",
+    //CAR_CODE_CARREA: "code_career"
   },
   // Asignaturas
   {

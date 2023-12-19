@@ -13,6 +13,7 @@ import Province from "../modules/establishment/province.model";
 import Region from "../modules/establishment/region.model";
 import EthnicGroup from "../modules/user/ethnic_group.model";
 import UserEstablishment from "../modules/establishment/user_establishment.model";
+import SubjectInStudyPlan from "../modules/practice/subject_study_plan.model";
 
 // Relacion rol - usuario (1-n)
 Rol.hasMany(User, { foreignKey: "rol_id", as: "users" });
@@ -71,8 +72,8 @@ Subject.hasMany(Practice, { foreignKey: "subject_id", as: "practices" });
 Practice.belongsTo(Subject, { foreignKey: "subject_id", as: "subject" });
 
 // Relacion plan de estudio - asignatura (n-m)
-StudyPlan.belongsToMany(Subject, { through: "study_plan_subject", foreignKey: "study_plan_id", as: "subjects" });
-Subject.belongsToMany(StudyPlan, { through: "study_plan_subject", foreignKey: "subject_id", as: "studyPlans" });
+StudyPlan.belongsToMany(Subject, { through: SubjectInStudyPlan, foreignKey: "study_plan_id", as: "subjects" });
+Subject.belongsToMany(StudyPlan, { through: SubjectInStudyPlan, foreignKey: "subject_id", as: "studyPlans" });
 
 // Relacion carrera - plan de estudio (n-m)
 Career.belongsToMany(StudyPlan, { through: "career_study_plan", foreignKey: "career_id", as: "studyPlans" });
@@ -121,5 +122,6 @@ export {
   Province,
   Region,
   EthnicGroup,
-  UserEstablishment
+  UserEstablishment,
+  SubjectInStudyPlan
 };
