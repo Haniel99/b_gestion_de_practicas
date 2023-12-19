@@ -5,42 +5,22 @@ import { PracticeModule } from "./practice.controller";
 import { existPracticeById } from "../../helpers/databasevalidator";
 const router = Router();
 
+router.put("/update/:id", [tokenValidator], PracticeModule.update);
 
+router.post("/index", [tokenValidator], PracticeModule.index);
 
+router.get("/view/:id", [tokenValidator], PracticeModule.view);
 
-router.put("/update/:id",
-  [
-    
-  ],
-  PracticeModule.update
-);
-
-
-router.post("/index",
-  [
-
-  ],
-  PracticeModule.index
-);
-
-router.get("/view/:id",
-  [
-    /* tokenValidator,
-    check("id").isNumeric(),
-    check("id").custom(existPracticeById),
-    validateFields, */
-  ],
-  PracticeModule.view
-);
-
-router.post("/practices-coordinator/:id",
-  [],
+router.post(
+  "/practices-coordinator/:id",
+  [tokenValidator],
   PracticeModule.practicesByCordinatorId
 );
-  
-  router.post("/practices-career/:id",
-  [],
+
+router.post(
+  "/practices-career/:id",
+  [tokenValidator],
   PracticeModule.practicesByCareerId
 );
-  
-  export { router };
+
+export { router };
