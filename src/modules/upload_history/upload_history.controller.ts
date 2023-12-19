@@ -336,6 +336,15 @@ export class UploadHistoryModule  {
             let rowCreated = 0;
             
             for (let row of excelData.data) {
+                let career = await Career.findOne({
+                    where: {
+                        code: row.code_career
+                    }
+                })
+                if(!career) {
+                    throw new Error(`Career not exist: ${row.code_career}`);
+                }
+
                 let student: any = await User.findOne({
                     where: {
                         rut: row.rut_student,
@@ -362,7 +371,8 @@ export class UploadHistoryModule  {
 
                 const practiceData = {
                     student_id: student.id,
-                    subject_id: subject.id
+                    subject_id: subject.id,
+                    career_id: career.id
                 };
 
                 //Registrar practica

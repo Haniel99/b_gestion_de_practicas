@@ -37,7 +37,7 @@ const translations = [
   {
     PER_NRUT: "rut_student",
     ASI_CODIGO: "code_subject",
-    //CAR_CODE_CARREA: "code_career"
+    CAR_CODIGO_CARRERA: "code_career"
   },
   // Asignaturas
   {
