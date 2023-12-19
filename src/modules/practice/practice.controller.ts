@@ -193,7 +193,7 @@ export class PracticeModule {
     try {
       const practiceId = req.params.id;
       const data = req.body;
-      const usuarioId = 2 //Id usuario que inicio sesion
+      const usuarioId = req.user
 
       if (data.establishment_id) { //ACTUALIZAR - PRACTICA (ESTABLECIMIENTO)
         //Validar que el establecimiento exista
@@ -439,11 +439,58 @@ export class PracticeModule {
       });
 
     } catch (error: any) {
-      console.error(error);
-      return res.status(500).json({
-        msg: "Error en el servidor, comuniquese con el administrador",
-        error: error.message,
-      });
+      console.log(error)
+      errorHandler(res);
     }
   }
+
+  static async deleteEstablishment(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const practice: any = await Practice.findByPk(id);
+      if (!practice) {
+        return res.status(400).send("Id dont exist");
+      }
+
+      practice.establishment_id = null;
+      await practice.save();
+      return res.status(200).json({
+        msg: "Successfully updated data",
+      });
+    } catch (error) {
+      errorHandler(res);
+    }
+  }
+
+  static async deleteTeacher(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const data = req.body; //Tipo de profesor
+      const practice: any = await Practice.findByPk(id);
+      if (!practice) {
+        return res.status(400).send("Error not found");
+      }
+
+      if (data.teacherType == 1) {
+        practice.supervisor_id = null;
+      }
+
+      if (data.teacherType == 2) {
+        practice.workshop_teacher_id = null;
+      }
+
+      if (data.teacherType == 3) {
+        practice.collaborating_teacher_id = null;
+      }
+      await practice.save();
+
+      return res.status(200).json({
+        msg: "Successfully updated data",
+      });
+    } catch (error) {
+      errorHandler(res);
+    }
+  }
+
+
 }

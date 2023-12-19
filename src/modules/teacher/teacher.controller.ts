@@ -74,58 +74,93 @@ export default class TeacherModule {
     }
 
     static async create(req: Request, res: Response) {
-
         const t = await sequelize.transaction();
-
+    
         try {
-            const id = 2 //Id del coordinador
-            const profesorData = req.body; //Datos del nuevo profesor
-
-            //REGISTRAR - PROFESOR
-            //Validar que el profesor no exista
-            let profesor: any = await User.findOne({
-                where: {
-                    rut: profesorData.rut
-                },
-                transaction: t
-            })
-            //Registrar profesor en caso de que no exista
-            if (!profesor) {
-                profesor = await User.create(profesorData, { transaction: t });
-            } else { //Actualizar datos del profesor en caso de que si exista
-                await profesor.update(profesorData, { transaction: t });
+          const id = req.user;
+          const profesorData = req.body; //Datos del nuevo profesor
+          //REGISTRAR - PROFESOR
+          //Validar que el profesor no exista
+          let profesor: any = await User.findOne({
+            where: {
+              rut: profesorData.rut,
+            },
+            transaction: t,
+          });
+          //Registrar profesor en caso de que no exista
+          if (!profesor) {
+            profesor = await User.create(profesorData, { transaction: t });
+          } else {
+            if (profesor.id == id) {
+              return res.status(400).send("Coordinator data cannot be entered");
             }
-
-            //REGISTRAR - RELACION (PROFESOR-CARRERA)
-            //Buscar la carrera del coordinador
-            const career = await Career.findOne({
-                where: {
-                    user_id: id
-                },
-                transaction: t
-            })
-            //Validar si existe la carrera del coordinador
-            if (!career) {
-                return res.status(401).json({
-                    message: "Coordinator's career not found"
-                });
-            }
-            //Registrar relacion profesor - carrera
-            await profesor.addCareer(career, { transaction: t });
-            //Guardar estado            
-            const commit = await t.commit();
-
-            return res.status(200).json({
-                msg: "Successfully registered teacher"
-            })
-
+            //Actualizar datos del profesor en caso de que si exista
+            await profesor.update(profesorData, { transaction: t });
+          }
+    
+          //REGISTRAR - RELACION (PROFESOR-CARRERA)
+          //Buscar la carrera del coordinador
+          const career = await Career.findOne({
+            where: {
+              user_id: id,
+            },
+            transaction: t,
+          });
+          //Validar si existe la carrera del coordinador
+          if (!career) {
+            return res.status(401).send("Coordinator's career not found");
+          }
+          //Registrar relacion profesor - carrera
+          await profesor.addCareer(career, { transaction: t });
+          //Guardar estado
+          await t.commit();
+    
+          return res.status(200).json({
+            status: true,
+            msg: "Successfully registered teacher",
+          });
         } catch (error: any) {
-            await t.rollback();
-            console.error(error);
-            return res.status(500).json({
+          await t.rollback();
+          console.error(error);
+          return res.status(500).json({
+            status: false,
             msg: "Error en el servidor, comuniquese con el administrador",
             error: error.message,
-            });
+          });
         }
     }
+
+    static async update(req: Request, res: Response) {
+        const t = await sequelize.transaction();
+        try {  
+          const { id } = req.params;
+          const profesorData = req.body; //Datos del nuevo 
+          console.log(profesorData, id)
+          //REGISTRAR - PROFESOR
+          //Validar que el profesor no exista
+          let profesor: any = await User.findByPk(id, {
+            transaction: t,
+          });
+          //Registrar profesor en caso de que no exista
+          if (!profesor) {
+            return res.status(400).send("Error");
+          }
+          await profesor.update(profesorData, { transaction: t });
+    
+          await t.commit();
+    
+          return res.status(200).json({
+            status: true,
+            msg: "Successfully update teacher",
+          });
+        } catch (error: any) {
+          await t.rollback();
+          console.error(error);
+          return res.status(500).json({
+            status: false,
+            msg: "Error en el servidor, comuniquese con el administrador",
+            error: error.message,
+          });
+        }
+      }
 }
