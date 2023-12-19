@@ -94,13 +94,74 @@ export class EstablishmentModule {
 
   static async createUser(req: Request, res: Response) {
     try {
+        const id = req.params.id;
+        let data = req.body;
+        data = {
+            ...data,
+            establishmen_id: id
+        }
+        const user = await UserEstablishment.create(data);
+
+        return res.status(200).json({
+            message: "Successfully registered user",
+        })
         
-    } catch (error) {
+
+    } catch (error: any) {
+        console.error(error);
+        return res.status(500).json({
+            msg: "Error en el servidor, comuniquese con el administrador",
+            error: error.message,
+        });
+    }
+  }
+
+  static async updateUser(req: Request, res: Response) {
+    try {
+        const id = req.params.id;
+        let data = req.body;
+
+        const user = await UserEstablishment.update(data, {
+            where: {
+                id: id
+            }
+        });
+
+        return res.status(200).json({
+            message: "Successfully updated user",
+        })
         
+
+    } catch (error: any) {
+        console.error(error);
+        return res.status(500).json({
+            msg: "Error en el servidor, comuniquese con el administrador",
+            error: error.message,
+        });
     }
   }
 
   static async deleteUser(req: Request, res: Response) {
+    try {
+        const id = req.params.id;
 
+        const user = await UserEstablishment.destroy({
+            where: {
+                id: id
+            }
+        });
+
+        return res.status(200).json({
+            message: "Successfully deleted user",
+        })
+        
+
+    } catch (error: any) {
+        console.error(error);
+        return res.status(500).json({
+            msg: "Error en el servidor, comuniquese con el administrador",
+            error: error.message,
+        });
+    }
   }
 }

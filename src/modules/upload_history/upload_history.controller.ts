@@ -1,6 +1,6 @@
 import { errorHandler, excelToJson, lazyTable } from "../../helpers";
 import { IUser, Request, Response } from "../../interfaces";
-import { Career, Establishment, Practice, StudyPlan, Subject, UploadHistory, User, Commune, EducationalBranch, Payment, EthnicGroup } from "../../app/app.associatios";
+import { Career, Establishment, Practice, StudyPlan, Subject, UploadHistory, User, Commune, EducationalBranch, Payment, EthnicGroup, SubjectInStudyPlan } from "../../app/app.associatios";
 import sequelize from "../../configs/config"
 import ExcelJS from "exceljs";
 const { Op } = require('sequelize');
@@ -334,81 +334,25 @@ export class UploadHistoryModule  {
             }
 
             let rowCreated = 0;
-            let rowUpdated = 0;
             
             for (let row of excelData.data) {
                 let student: any = await User.findOne({
                     where: {
-                        rut: row.rut_student
+                        rut: row.rut_student,
+                        study_plan_id: { //Tipo estudiante
+                            [Op.ne]: null
+                        }
                     },
                     transaction: t
                 });
-
-                const studyPlan: any = await StudyPlan.findOne({
-                    where: {
-                        code: row.code_study_plan
-                    },
-                    transaction: t
-                });
-                if (!studyPlan) {
-                    throw new Error(`Unknown study plan code: ${row.code_study_plan}`);
-                }
-
-                const studentData = {
-                    name: row.name_student,
-                    pat_last_name: row.pat_last_name_student,
-                    mat_last_name: row.mat_last_name_student,
-                    rut: row.rut_student,
-                    check_digit: row.check_digit_student,
-                    study_plan: studyPlan.id
-                }
-                // Crear estudiante (si el rut no existe en la bd)
                 if (!student) {
-                    student = await User.create(studentData, { transaction: t });
-                } else { // Actualizar estudiante (si el rut existe en la bd)
-                    await student.update(studentData, { transaction: t })
-                }
-
-                let supervisor: any = await User.findOne({
-                    where: {
-                        rut: row.rut_supervisor
-                    },
-                    transaction: t
-                });
-                const supervisorData = {
-                    name: row.name_supervisor,
-                    pat_last_name: row.pat_last_name_supervisor,
-                    mat_last_name: row.mat_last_name_supervisor,
-                    rut: row.rut_supervisor,
-                    check_digit: row.check_digit_supervisor,
-                }
-                // Crear supervisor (si el rut no existe en la bd)
-                if (!supervisor) {
-                    supervisor = await User.create(supervisorData, { transaction: t });
-                } else { // Actualizar supervisor (si el rut existe en la bd)
-                    await supervisor.update(supervisorData, { transaction: t })
-                }
-
-                const establishment: any = await Establishment.findOne({
-                    where: {
-                        code: row.code_establishment
-                    },
-                    transaction: t
-                });
-                if (!establishment) {
-                    throw new Error(`Unknown establishment code: ${row.code_establishment}`);
+                    throw new Error(`Rut not exist: ${row.rut_student}`);
                 }
 
                 const subject: any = await Subject.findOne({
                     where: {
                         code: row.code_subject
                     },
-                    include: [
-                        {
-                            model: StudyPlan,
-                            as: "studyPlan",
-                        }
-                    ],
                     transaction: t
                 });
 
@@ -416,49 +360,23 @@ export class UploadHistoryModule  {
                     throw new Error(`Unknown subject code: ${row.code_subject}`);
                 }
 
-                const practice: any = await Practice.findOne({
-                    where: {
-                        code: row.code_practice
-                    },
-                    transaction: t
-                });
-
-                // Conversion de fechas
-                if (row.start_date) {
-                    row.start_date = row.start_date.toISOString().split('T')[0];
-                }
-                if (row.end_date) {
-                    row.end_date = row.end_date.toISOString().split('T')[0];
-                }
-                
                 const practiceData = {
-                    code: row.code_practice,
-                    status: row.status,
-                    start_date: row.start_date,
-                    end_date: row.end_date,
-                    career_id: subject.studyPlan.career_id,
                     student_id: student.id,
-                    supervisor_id: supervisor.id,
-                    establishment_id: establishment.id,
                     subject_id: subject.id
                 };
-                // Crear practica (si el codigo no existe en la bd)
-                if (!practice) {
-                    await Practice.create(practiceData, { transaction: t });
-                    rowCreated++;
-                } else { // Actualizar practica (si el codigo existe en la bd)
-                    await practice.update(practiceData, { transaction: t });
-                    rowUpdated++
-                }
+
+                //Registrar practica
+                const practice = await Practice.create(practiceData, { transaction: t })
+                rowCreated++;
             }
 
             const fileData = {
                 name: name,
                 upload_date: new Date(),
                 file: req.file,
-                number_rows: rowCreated + rowUpdated,
+                number_rows: rowCreated,
                 file_type: "Practicas",
-                user_id: 4 //Cambiar por el usuario que inicio sesion
+                user_id: 1 //Cambiar por el usuario que inicio sesion
             };
             await UploadHistory.create(fileData, { transaction: t })
 
@@ -467,8 +385,7 @@ export class UploadHistoryModule  {
             return res.status(200).json({
                 message: "Data was loaded successfully",
                 rowCreated: rowCreated,
-                rowUpdated: rowUpdated,
-                total: rowCreated + rowUpdated
+                total: rowCreated
             });
 
         } catch (error:any) {
@@ -508,14 +425,55 @@ export class UploadHistoryModule  {
                 });
             }
 
-            return res.json(excelData.data);
-
             let rowCreated = 0;
-            let lastSubject = null;
+            let listSubject = [];
             
             for (let row of excelData.data) {
                 //REGISTRAR - ASIGNATURA
-                //Validar 
+                //Validar que exista el plan de estudio
+                const studyPlan = await StudyPlan.findOne({
+                    where: {
+                        code: row.code_study_plan
+                    },
+                    transaction: t
+                });
+                if (!studyPlan) {
+                    throw new Error(`Unknown study plan code: ${row.code_study_plan}`);
+                }
+
+                //Validar que no exista la asignatura
+                let subject: any = await Subject.findOne({
+                    where: {
+                        code: row.code_subject
+                    },
+                    transaction: t
+                });
+                //Obtener los datos de la asignatura desde el excel
+                const subjectData = {
+                    name: row.name_subject,
+                    code: row.code_subject,
+                    total_hours: row.hours_subject
+                }
+                //Registrar asignatura en caso de que no exista
+                if (!subject) {
+                    subject = await Subject.create(subjectData, { transaction: t });
+                    //Crear relacion con plan de estudio
+                    await subject.addStudyPlan(studyPlan, { transaction: t });
+                    rowCreated++
+                } else {//Actualizar datos en caso de que si exista
+                    await subject.update(subjectData, { transaction: t });
+                    //Verificar si la relacion con el plan de estudio ya esta creada
+                    const subjectTableIntermedia = await SubjectInStudyPlan.findOne({
+                        where: {
+                            study_plan_id: studyPlan.id,
+                            subject_id: subject.id
+                        }
+                    })
+                    //Registrar relacion en caso de que no exista
+                    if (!subjectTableIntermedia) {
+                        await subject.addStudyPlan(studyPlan, { transaction: t });
+                    }
+                }
             }
 
             //REGISTRAR - ARCHIVO IMPORTADO
@@ -525,7 +483,7 @@ export class UploadHistoryModule  {
                 upload_date: new Date(),
                 file: req.file,
                 number_rows: excelData.numberRows,
-                file_type: "Carreras",
+                file_type: "Asignaturas",
                 user_id: 1 //Cambiar por el usuario que inicio sesion
             };
             //Registrar archivo importado
