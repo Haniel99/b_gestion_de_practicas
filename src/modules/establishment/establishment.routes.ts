@@ -13,13 +13,13 @@ router.get("/view/:id",
     [tokenValidator],
     EstablishmentModule.view
 );
-
+router.get("/view-utp/:id", [ tokenValidator], EstablishmentModule.viewUTP);
 router.post("/create-user/:id",
     [tokenValidator],
     EstablishmentModule.createUser
 );
 
-router.post("/update-user/:id",
+router.put("/update-user/:id",
     [tokenValidator],
     EstablishmentModule.updateUser
 );

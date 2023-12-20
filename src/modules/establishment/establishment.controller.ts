@@ -91,6 +91,25 @@ export class EstablishmentModule {
         });
     }
   }
+  static async viewUTP(req: Request, res: Response) {
+    try {
+        const id = req.params.id;
+        
+        const user = await UserEstablishment.findByPk(id);
+
+        return res.status(200).json({
+            message: "Successfully registered user",
+            response: user
+        })
+
+    } catch (error: any) {
+        console.error(error);
+        return res.status(500).json({
+            msg: "Error en el servidor, comuniquese con el administrador",
+            error: error.message,
+        });
+    }
+  }
 
   static async createUser(req: Request, res: Response) {
     try {
@@ -105,7 +124,6 @@ export class EstablishmentModule {
         return res.status(200).json({
             message: "Successfully registered user",
         })
-        
 
     } catch (error: any) {
         console.error(error);
