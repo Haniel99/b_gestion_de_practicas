@@ -256,11 +256,10 @@ export class WorksheetModule {
                                     model: Subject,
                                     as: "subject",
                                     where: {
-                                        type: "Profesional",
-                                        practice_number: number
+                                        code: number
                                     },
                                     order: [
-                                        ['practice_number', 'ASC']
+                                        ['code', 'ASC']
                                     ],
                                 },
                                 {
@@ -303,7 +302,7 @@ export class WorksheetModule {
                 data = [...data, ...carrerData];
             }
         }
-
+        console.log(data);
         // Separar en arreglos por cada asignatura
         let numberStudent = 1;
         let indiceArreglo = 0;

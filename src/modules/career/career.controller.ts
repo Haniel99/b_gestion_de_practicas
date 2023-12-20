@@ -5,9 +5,10 @@ import {
   Establishment,
   Practice,
   StudyPlan,
+  Subject,
   User,
 } from "../../app/app.associatios";
-import sequelize from "sequelize";
+import sequelize, { Model } from "sequelize";
 
 export class CareerModule {
   constructor() {}
@@ -63,14 +64,41 @@ export class CareerModule {
   }
 
   
-  /* static async getIndex(req: Request, res: Response){
+  static async getIndex(req: Request, res: Response){
     try {
-      const career = await Career.findAll();
+      const career = await Career.findAll({
+        include: [
+          {
+            model: StudyPlan,
+            as: "studyPlans",
+            include:[
+              {
+                model: Subject,
+                as: "subjects"
+              }
+            ]
+          }
+        ]
+      });
+      let careerFilters = career.map((item:any)=>{
+        let studyPlans = item.studyPlans.map((res:any)=>{
+          return 
+        });
+        return (
+          {
+            code: item.code,
+            id: item.id,
+            name: item.name,
+            sede: item.sed,
+
+          }
+        )
+      })
       return res.json({
         response: career
       });
     } catch (error) {
       errorHandler(res);
     }
-  } */
+  } 
 }
