@@ -1,4 +1,4 @@
-import { Career, Establishment, Practice, StudyPlan, Subject } from "../app/app.associatios";
+import { Career, Establishment, Practice, StudyPlan, Subject, SubjectInStudyPlan } from "../app/app.associatios";
 
 
 // Obtener los filtros por numero de practica de una carrera o todas las carreras
@@ -6,36 +6,38 @@ async function getFilterPracticeNumbers(id?: number) {
     let whereCondition = {};
     if (id) {
         whereCondition = {
-            '$studyPlans.careers.id$': id
+            '$studyPlan.careers.id$': id
         };
     }
     
-    const practiceNumbersData: Subject[] = await Subject.findAll({
-        attributes: [
-            "practice_number",
-        ],
+    const practiceNumbersData = await SubjectInStudyPlan.findAll({
         include: [
-            {
-                model: StudyPlan,
-                as: "studyPlans",
-                attributes: [],
-                include: [
-                    {
-                        model: Career,
-                        as: "careers",
-                        attributes: [],
-                    },
-                ]
-            }
+          {
+            attributes: [],
+            model: Subject,
+            as: "subject",
+          },
+          {
+            attributes: [],
+            model: StudyPlan,
+            as: "studyPlan",
+            include: [
+                {
+                    attributes: [],
+                    model: Career,
+                    as: "careers"
+                }
+            ]
+          }
         ],
         where: whereCondition,
         order: [
             "practice_number"
-        ]
-    });
+        ],
+      });
     
     const practiceNumbersFilter = practiceNumbersData
-        .map( (item: Subject ) => item.practice_number )
+        .map( (item: any ) => item.practice_number )
         .filter( (item, index, self) => self.indexOf(item) == index )
 
     return practiceNumbersFilter;
