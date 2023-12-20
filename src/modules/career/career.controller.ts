@@ -80,20 +80,7 @@ export class CareerModule {
           }
         ]
       });
-      let careerFilters = career.map((item:any)=>{
-        let studyPlans = item.studyPlans.map((res:any)=>{
-          return 
-        });
-        return (
-          {
-            code: item.code,
-            id: item.id,
-            name: item.name,
-            sede: item.sed,
-
-          }
-        )
-      })
+      
       return res.json({
         response: career
       });
