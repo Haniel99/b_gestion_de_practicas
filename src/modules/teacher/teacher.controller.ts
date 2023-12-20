@@ -41,7 +41,6 @@ export default class TeacherModule {
     static async teachersByCoordinator(req: Request, res: Response) {
     try {
       const usuarioId = req.user; //Id del coordinador que inicio sesion
-
       let opts = lazyTable(req.body);
       opts.include = [
         {
@@ -78,6 +77,7 @@ export default class TeacherModule {
         try {
           const id = req.user;
           const profesorData = req.body; //Datos del nuevo profesor
+          console.log(profesorData,id);
           //REGISTRAR - PROFESOR
           //Validar que el profesor no exista
           let profesor: any = await User.findOne({
@@ -134,7 +134,7 @@ export default class TeacherModule {
         try {  
           const { id } = req.params;
           const profesorData = req.body; //Datos del nuevo 
-          console.log(profesorData, id)
+          console.log(profesorData);
           //REGISTRAR - PROFESOR
           //Validar que el profesor no exista
           let profesor: any = await User.findByPk(id, {

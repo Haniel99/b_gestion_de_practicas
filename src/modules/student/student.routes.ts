@@ -6,12 +6,12 @@ import StudentModule from "./student.controller";
 const router = Router();
 
 router.post("/students-by-coordinator",
-    [],
+    [tokenValidator],
     StudentModule.studentByCoordinator
 );
 
 router.get("/view/:id",
-    [],
+    [tokenValidator],
     StudentModule.view
 );
   

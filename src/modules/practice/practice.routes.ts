@@ -12,7 +12,7 @@ router.post("/index", [tokenValidator], PracticeModule.index);
 router.get("/view/:id", [tokenValidator], PracticeModule.view);
 
 router.post(
-  "/practices-coordinator/:id",
+  "/practices-coordinator",
   [tokenValidator],
   PracticeModule.practicesByCordinatorId
 );
@@ -23,4 +23,7 @@ router.post(
   PracticeModule.practicesByCareerId
 );
 
+router.put("/delete-teacher/:id", [ tokenValidator ], PracticeModule.deleteTeacher);
+
+router.delete("/delete-establishment/:id", [ tokenValidator ], PracticeModule.deleteEstablishment);
 export { router };

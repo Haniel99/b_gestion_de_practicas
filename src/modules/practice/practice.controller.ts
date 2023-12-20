@@ -352,12 +352,12 @@ export class PracticeModule {
 
   static async practicesByCordinatorId(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.user;
 
-      console.log(req.body);
+      console.log(req.body, id);
 
       //Datos de la carrera a la que pertenece el coordinador
-      const career = await Career.findOne({
+      const career:any = await Career.findOne({
         attributes: [
           "id",
           "code",
@@ -416,21 +416,20 @@ export class PracticeModule {
       //Agregar la carrera por la cual se va filtrar, junto con los filtros de opts
       opts.where = {
         ...opts.where,
-        career_id: career?.id
+        career_id: career.id
       }
 
       const practices = await Practice.findAndCountAll(opts);
-
+      
       let filters: any = {};
       if (career?.id !== undefined) {
         //Filtros
-        filters.practiceNumbers = await getFilterPracticeNumbers(career.id);
+        filters.practice_numbers = await getFilterPracticeNumbers(career.id);
         filters.subjects = await getFilterSubjects(career.id);
         filters.establishments = await getFilterEstablishments(career.id);
-        filters.studyPlans = await getFilterStudyPlans(career.id);
+        filters.study_plans = await getFilterStudyPlans(career.id);
       }
-
-      
+    
       return res.status(200).json({
         message: "Successfuly query",
         response: {

@@ -11,12 +11,12 @@ const router = Router();
 ); */
   
 router.post("/create",
-    [],
+    [tokenValidator],
     TeacherModule.create
 );
 
-router.post("/view/:id",
-    [],
+router.get("/view/:id",
+    [tokenValidator],
     TeacherModule.view
 );
 
@@ -25,4 +25,5 @@ router.post("/teachers-by-coordinator",
   TeacherModule.teachersByCoordinator
 )
 
+router.put("/update/:id", [ tokenValidator ], TeacherModule.update);
   export { router };
