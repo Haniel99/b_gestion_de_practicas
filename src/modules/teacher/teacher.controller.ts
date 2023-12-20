@@ -60,41 +60,39 @@ export default class TeacherModule {
         try {
             const usuarioId = req.user; //Id del coordinador que inicio sesion
 
-            let opts = lazyTable(req.body);
-            opts.include = [
-                {
-                    attributes: [],
-                    model: Career,
-                    as: "careers",
-                    where: {
-                        user_id: usuarioId
-                    }
-                }
-            ]
+      let opts = lazyTable(req.body);
+      opts.include = [
+        {
+          attributes: [],
+          model: Career,
+          as: "careers",
+          where: {
+            user_id: usuarioId,
+          },
+        },
+      ];
 
-            const teachers = await User.findAndCountAll(opts);
+      const teachers = await User.findAndCountAll(opts);
 
-            return res.status(200).json({
-                message: "Successfuly query",
-                response: {
-                    count: teachers.count,
-                    rows: teachers.rows
-                  },
-            })
-            
-        } catch (error: any) {
-            console.error(error);
-            return res.status(500).json({
-                msg: "Error en el servidor, comuniquese con el administrador",
-                error: error.message,
-            });
-        }
+      return res.status(200).json({
+        message: "Successfuly query",
+        response: {
+          count: teachers.count,
+          rows: teachers.rows,
+        },
+      });
+    } catch (error: any) {
+      //            console.error(error);
+      return res.status(500).json({
+        msg: "Error en el servidor, comuniquese con el administrador",
+        error: error.message,
+      });
     }
+  }
 
     static async create(req: Request, res: Response) {
-
         const t = await sequelize.transaction();
-
+    
         try {
             const id = req.user;
             const profesorData = req.body; //Datos del nuevo profesor
@@ -139,12 +137,47 @@ export default class TeacherModule {
             })
 
         } catch (error: any) {
-            await t.rollback();
-            console.error(error);
-            return res.status(500).json({
+          await t.rollback();
+          console.error(error);
+          return res.status(500).json({
+            status: false,
             msg: "Error en el servidor, comuniquese con el administrador",
             error: error.message,
-            });
+          });
         }
     }
+
+    static async update(req: Request, res: Response) {
+        const t = await sequelize.transaction();
+        try {  
+          const { id } = req.params;
+          const profesorData = req.body; //Datos del nuevo 
+          console.log(profesorData, id)
+          //REGISTRAR - PROFESOR
+          //Validar que el profesor no exista
+          let profesor: any = await User.findByPk(id, {
+            transaction: t,
+          });
+          //Registrar profesor en caso de que no exista
+          if (!profesor) {
+            return res.status(400).send("Error");
+          }
+          await profesor.update(profesorData, { transaction: t });
+    
+          await t.commit();
+    
+          return res.status(200).json({
+            status: true,
+            msg: "Successfully update teacher",
+          });
+        } catch (error: any) {
+          await t.rollback();
+          console.error(error);
+          return res.status(500).json({
+            status: false,
+            msg: "Error en el servidor, comuniquese con el administrador",
+            error: error.message,
+          });
+        }
+      }
 }

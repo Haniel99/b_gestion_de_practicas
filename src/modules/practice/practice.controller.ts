@@ -9,6 +9,7 @@ import {
   Practice,
   StudyPlan,
   Subject,
+  SubjectInStudyPlan,
   User,
 } from "../../app/app.associatios";
 import { Op } from "sequelize";
@@ -110,7 +111,7 @@ export class PracticeModule {
               "rut",
               "phone",
               "address",
-              "email"
+              "email",
             ],
             include: [
               {
@@ -134,13 +135,13 @@ export class PracticeModule {
           {
             model: Establishment,
             as: "establishment",
-            attributes: ["name", "code", "address", "phone", "email"]
+            attributes: ["name", "code", "address", "phone", "email"],
           },
         ],
       });
 
-      const practice = await Practice.findByPk(id,{
-        include:[
+      const practice = await Practice.findByPk(id, {
+        include: [
           {
             model: Subject,
             as: "subject",
@@ -149,13 +150,14 @@ export class PracticeModule {
             model: StudyPlan,
             as: "studyPlan",
           },
-        ]
+        ],
       });
 
       let profesores = [];
       if (queryResult.supervisor) {
         profesores.push({
           type: "Profesor supervisor",
+          teacherType: 1,
           data: queryResult.supervisor,
         });
       }
@@ -163,6 +165,7 @@ export class PracticeModule {
       if (queryResult.workshopteacher) {
         profesores.push({
           type: "Profesor de taller",
+          teacherType: 2,
           data: queryResult.workshopteacher,
         });
       }
@@ -170,10 +173,17 @@ export class PracticeModule {
       if (queryResult.collaboratingTeacher) {
         profesores.push({
           type: "Profesor colaborador",
+          teacherType: 3,
           data: queryResult.collaboratingTeacher,
         });
       }
-
+      let establishment: any = [];
+      if (queryResult.establishment) {
+        establishment.push({
+          type: "Datos del establecimiento",
+          data: queryResult.establishment,
+        });
+      }
       return res.json({
         status: true,
         message: "Seccessful query",
@@ -181,25 +191,19 @@ export class PracticeModule {
           [{ type: "Datos del alumno", data: queryResult.student }],
           [{ type: "Datos de practica", data: practice }],
           profesores,
-          [
-            {
-              type: "Datos del establecimiento",
-              data: queryResult.establishment,
-            },
-          ],
-          
+          establishment,
         ],
       });
     } catch (error) {
       errorHandler(res, error);
-    } 
-  };
-
+    }
+  }
+  
   static async update(req: Request, res: Response) {
     try {
       const practiceId = req.params.id;
       const data = req.body;
-      const usuarioId = 2 //Id usuario que inicio sesion
+      const usuarioId = req.user
 
       if (data.establishment_id) { //ACTUALIZAR - PRACTICA (ESTABLECIMIENTO)
         //Validar que el establecimiento exista
@@ -286,10 +290,13 @@ export class PracticeModule {
         {
           model: Subject,
           as: "subject",
-          attributes: [
-            "name",
-            "type",
-            "practice_number"],
+          include: [
+            {
+              model: StudyPlan,
+              as: "studyPlans",
+              through: { where: { practice_number: 2 } },
+            }
+          ]
         },
         {
           model: StudyPlan,
@@ -421,7 +428,7 @@ export class PracticeModule {
         ...opts.where,
         career_id: career?.id
       }
-
+  
       const practices = await Practice.findAndCountAll(opts);
 
       let filters: any = {};
@@ -445,11 +452,58 @@ export class PracticeModule {
       });
 
     } catch (error: any) {
-      console.error(error);
-      return res.status(500).json({
-        msg: "Error en el servidor, comuniquese con el administrador",
-        error: error.message,
-      });
+      console.log(error)
+      errorHandler(res);
     }
   }
+
+  static async deleteEstablishment(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const practice: any = await Practice.findByPk(id);
+      if (!practice) {
+        return res.status(400).send("Id dont exist");
+      }
+
+      practice.establishment_id = null;
+      await practice.save();
+      return res.status(200).json({
+        msg: "Successfully updated data",
+      });
+    } catch (error) {
+      errorHandler(res);
+    }
+  }
+
+  static async deleteTeacher(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const data = req.body; //Tipo de profesor
+      const practice: any = await Practice.findByPk(id);
+      if (!practice) {
+        return res.status(400).send("Error not found");
+      }
+
+      if (data.teacherType == 1) {
+        practice.supervisor_id = null;
+      }
+
+      if (data.teacherType == 2) {
+        practice.workshop_teacher_id = null;
+      }
+
+      if (data.teacherType == 3) {
+        practice.collaborating_teacher_id = null;
+      }
+      await practice.save();
+
+      return res.status(200).json({
+        msg: "Successfully updated data",
+      });
+    } catch (error) {
+      errorHandler(res);
+    }
+  }
+
+
 }

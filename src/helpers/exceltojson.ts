@@ -37,7 +37,8 @@ const translations = [
   {
     PER_NRUT: "rut_student",
     ASI_CODIGO: "code_subject",
-    CAR_CODIGO_CARRERA: "code_career"
+    CAR_CODIGO_CARRERA: "code_career",
+    PLA_CODIGO: "code_study_plan"
   },
   // Asignaturas
   {
@@ -45,8 +46,8 @@ const translations = [
     ASI_NOMBRE: "name_subject",
     ASI_HORAS_SEMESTRAL: "hours_subject",
     PLA_CODIGO: "code_study_plan",
-    FLU_SEMESTRE: "semestre_subject",
-    FLU_POSICION_MALLA: "posicion_malla_subject"
+    FLU_SEMESTRE: "semester_subject",
+    FLU_POSICION_MALLA: "position_subject"
   },
   //Carreras y planes de estudio
   {

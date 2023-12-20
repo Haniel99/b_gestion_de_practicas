@@ -4,6 +4,7 @@ import { Career, Establishment, Practice, StudyPlan, Subject, UploadHistory, Use
 import sequelize from "../../configs/config"
 import ExcelJS from "exceljs";
 const { Op } = require('sequelize');
+const { QueryTypes } = require('sequelize');
 import { IStudyPlan } from "../../interfaces/IModules/study_plan.interface";
 import formatPhone from "../../helpers/formattophone";
 
@@ -344,6 +345,15 @@ export class UploadHistoryModule  {
                 if(!career) {
                     throw new Error(`Career not exist: ${row.code_career}`);
                 }
+                
+                let studyPlan = await StudyPlan.findOne({
+                    where: {
+                        code: row.code_study_plan
+                    }
+                })
+                if(!studyPlan) {
+                    throw new Error(`Study plan not exist: ${row.code_study_plan}`);
+                }
 
                 let student: any = await User.findOne({
                     where: {
@@ -372,7 +382,8 @@ export class UploadHistoryModule  {
                 const practiceData = {
                     student_id: student.id,
                     subject_id: subject.id,
-                    career_id: career.id
+                    career_id: career.id,
+                    study_plan_id: studyPlan.id
                 };
 
                 //Registrar practica
@@ -436,7 +447,7 @@ export class UploadHistoryModule  {
             }
 
             let rowCreated = 0;
-            let listSubject = [];
+            let listRelationships: string[] = [];
             
             for (let row of excelData.data) {
                 //REGISTRAR - ASIGNATURA
@@ -468,8 +479,15 @@ export class UploadHistoryModule  {
                 if (!subject) {
                     subject = await Subject.create(subjectData, { transaction: t });
                     //Crear relacion con plan de estudio
-                    await subject.addStudyPlan(studyPlan, { transaction: t });
+                    await SubjectInStudyPlan.create({
+                        study_plan_id: studyPlan.id,
+                        subject_id: subject.id,
+                        semester: row.semester_subject,
+                        position: row.position_subject
+                    }, { transaction: t });
+                    listRelationships.push(`${row.code_subject}${row.code_study_plan}`); //Agregar a lista de relaciones registradas
                     rowCreated++
+
                 } else {//Actualizar datos en caso de que si exista
                     await subject.update(subjectData, { transaction: t });
                     //Verificar si la relacion con el plan de estudio ya esta creada
@@ -477,15 +495,23 @@ export class UploadHistoryModule  {
                         where: {
                             study_plan_id: studyPlan.id,
                             subject_id: subject.id
-                        }
+                        },
+                        transaction: t
                     })
-                    //Registrar relacion en caso de que no exista
-                    if (!subjectTableIntermedia) {
-                        await subject.addStudyPlan(studyPlan, { transaction: t });
+                    if (!listRelationships.includes(`${row.code_subject}${row.code_study_plan}`) && !subject) {
+                        //Registrar relacion en caso de que no exista
+                        await SubjectInStudyPlan.create({
+                            study_plan_id: studyPlan.id,
+                            subject_id: subject.id,
+                            semester: row.semester_subject,
+                            position: row.position_subject
+                        }, { transaction: t });
+                        listRelationships.push(`${row.code_subject}${row.code_study_plan}`); //Agregar a lista de relaciones registradas
                     }
                 }
             }
 
+            
             //REGISTRAR - ARCHIVO IMPORTADO
             //Obtener datos del archivo
             const fileData = {
@@ -499,22 +525,58 @@ export class UploadHistoryModule  {
             //Registrar archivo importado
             const file = await UploadHistory.create(fileData, { transaction: t });
             //Guardar estado
+            //ASIGNAR - NUMERO DE PRACTICA
+            //Retorna los datos de las asignaturas con
             const commit = await t.commit();
 
+            const subjectsQuery = `
+                SELECT s.id as subject_id, s.name as name_subject, sp.id as study_plan_id, sp.code as code_study_plan, sp.year as year_study_plan, ss.semester, ss.position
+                FROM subject s
+                INNER JOIN study_plan_subject ss ON s.id = ss.subject_id
+                INNER JOIN study_plan sp ON ss.study_plan_id = sp.id
+                ORDER BY sp.code, ss.semester, ss.position
+            `;
+            const subjects: any = await sequelize.query(subjectsQuery, { type: QueryTypes.SELECT });
 
+            let lastCode = null;
+            let practice_number = 1;
+            for (const subject of subjects) {
+                console.log(practice_number)
+                console.log(subject.code_study_plan, " -- ", lastCode)
+                if (subject.code_study_plan != lastCode) {
+                    practice_number = 1
+                    const relationship = await SubjectInStudyPlan.update({practice_number: practice_number},{
+                        where:{
+                            subject_id: subject.subject_id,
+                            study_plan_id: subject.study_plan_id
+                        }
+                    });
+                    lastCode = subject.code_study_plan
+                    practice_number++;
+                } else {
+                    const relationship = await SubjectInStudyPlan.update({practice_number: practice_number},{
+                        where:{
+                            subject_id: subject.subject_id,
+                            study_plan_id: subject.study_plan_id
+                        }
+                    });
+                    practice_number++;
+                }
+            }
+
+            
+            
             return res.status(200).json({
                 message: "Data was loaded successfully",
                 rowCreated: rowCreated,
                 total: excelData.numberRows,
+                rows: subjects
             });
             
         } catch (error: any) {
             const rollback = await t.rollback();
             console.error(error);
-            return res.status(500).json({
-                msg: "Error en el servidor, comuniquese con el administrador",
-                error: error.message
-            });
+            errorHandler(res)
         }
 
     }
