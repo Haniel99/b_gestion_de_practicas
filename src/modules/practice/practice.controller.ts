@@ -9,6 +9,7 @@ import {
   Practice,
   StudyPlan,
   Subject,
+  SubjectInStudyPlan,
   User,
 } from "../../app/app.associatios";
 import { Op } from "sequelize";
@@ -283,10 +284,13 @@ export class PracticeModule {
         {
           model: Subject,
           as: "subject",
-          attributes: [
-            "name",
-            "type",
-            "practice_number"],
+          include: [
+            {
+              model: StudyPlan,
+              as: "studyPlans",
+              through: { where: { practice_number: 2 } },
+            }
+          ]
         },
         {
           model: StudyPlan,
@@ -418,7 +422,7 @@ export class PracticeModule {
         ...opts.where,
         career_id: career?.id
       }
-
+  
       const practices = await Practice.findAndCountAll(opts);
 
       let filters: any = {};

@@ -7,7 +7,6 @@ class Subject extends Model {
   name?: string;
   code?: string;
   type?: string;
-  practice_number?: number;
   total_hours?: number;
   studyPlans?: StudyPlan[]
 }
@@ -16,7 +15,6 @@ Subject.init(
     name: DataTypes.STRING,
     code: DataTypes.STRING,
     type: DataTypes.STRING,
-    practice_number: DataTypes.INTEGER,
     total_hours: DataTypes.INTEGER,
   },
   {

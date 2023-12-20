@@ -6,7 +6,10 @@ class SubjectInStudyPlan extends Model {}
 SubjectInStudyPlan.init(
   {
     study_plan_id: DataTypes.INTEGER,
-    subject_id: DataTypes.INTEGER
+    subject_id: DataTypes.INTEGER,
+    practice_number: DataTypes.INTEGER,
+    semester: DataTypes.INTEGER,
+    position: DataTypes.INTEGER
   },
   {
     sequelize,

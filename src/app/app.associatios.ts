@@ -75,6 +75,13 @@ Practice.belongsTo(Subject, { foreignKey: "subject_id", as: "subject" });
 StudyPlan.belongsToMany(Subject, { through: SubjectInStudyPlan, foreignKey: "study_plan_id", as: "subjects" });
 Subject.belongsToMany(StudyPlan, { through: SubjectInStudyPlan, foreignKey: "subject_id", as: "studyPlans" });
 
+//Relaciones tabla intermedia
+Subject.hasMany(SubjectInStudyPlan, { foreignKey: "subject_id", as: "subjects" });
+SubjectInStudyPlan.belongsTo(Subject, { foreignKey: "subject_id", as: "subject" });
+
+StudyPlan.hasMany(SubjectInStudyPlan, { foreignKey: "study_plan_id", as: "studyPlans" });
+SubjectInStudyPlan.belongsTo(StudyPlan, { foreignKey: "study_plan_id", as: "studyPlan" });
+
 // Relacion carrera - plan de estudio (n-m)
 Career.belongsToMany(StudyPlan, { through: "career_study_plan", foreignKey: "career_id", as: "studyPlans" });
 StudyPlan.belongsToMany(Career, { through: "career_study_plan", foreignKey: "study_plan_id", as: "careers" });
