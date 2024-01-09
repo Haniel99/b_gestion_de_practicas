@@ -284,13 +284,6 @@ export class PracticeModule {
         {
           model: Subject,
           as: "subject",
-          include: [
-            {
-              model: StudyPlan,
-              as: "studyPlans",
-              through: { where: { practice_number: 2 } },
-            }
-          ]
         },
         {
           model: StudyPlan,

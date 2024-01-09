@@ -13,184 +13,22 @@ import formatRut from "../../helpers/formattorut";
 import ExcelJS from "exceljs";
 import formatDate from "../../helpers/formattodate";
 import formatMoney from "../../helpers/formattomoney";
+import getDataWorksheet from "../../helpers/getdataworksheet";
 
 
 export class WorksheetModule {
   constructor() {}
 
-  /* [
-    { 
-        "code": "201",
-        "practiceNumbers": [ "1", "2" ]
-    },
-    { 
-        "code": "202",
-        "practiceNumbers": [ "1" ]
-    }
-] */
-
-  static async dataWorksheet(req: Request, res: Response){
+static async viewWorksheet(req: Request, res: Response){
     try {
-        const careers = req.body;
-
-        let data: any = [];
-
-        for (const carrer of careers) {
-            const { code, practiceNumbers } = carrer;
-
-            for (const number of practiceNumbers) {
-                // Obtener los registros de una carrera para cierto numero de practica profesional
-                const carrerData = await Career.findAll({
-                    attributes: [
-                        "id",
-                        "code",
-                        "name"
-                    ],
-                    where: {
-                        code: code
-                    },
-                    include: [
-                        {
-                            attributes: [
-                                "id",
-                                "status"
-                            ],
-                            model: Practice,
-                            as: "practices",
-                            where: {
-                                status: 1
-                            },
-                            include: [
-                                {
-                                    attributes: [
-                                        "name",
-                                        "pat_last_name",
-                                        "mat_last_name",
-                                        "rut",
-                                        "check_digit"
-                                    ],
-                                    model: User,
-                                    as: "student"
-                                },
-                                {
-                                    attributes: [
-                                        "name",
-                                        "code",
-                                        "type",
-                                        "practice_number",
-                                        "start_date",
-                                        "end_date"
-                                    ],
-                                    model: Subject,
-                                    as: "subject",
-                                    where: {
-                                        type: "Profesional",
-                                        practice_number: number
-                                    },
-                                    order: [
-                                        ['practice_number', 'ASC']
-                                    ],
-                                },
-                                {
-                                    attributes: [
-                                        "account_number",
-                                        "bank",
-                                        "transportation_amount",
-                                        "food_amount"
-                                    ],
-                                    model: Payment,
-                                    as: "payment"
-                                },
-                                {
-                                    attributes: [
-                                        "name"
-                                    ],
-                                    model: Establishment,
-                                    as: "establishment",
-                                    include: [
-                                        {
-                                            attributes: [
-                                                "name"
-                                            ],
-                                            model: Commune,
-                                            as: "commune"
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ],
-                    order: [
-                        ['name', 'ASC']
-                    ],
-                    raw: true,
-                    nest: true,
-                })
-
-                if(carrerData.length != 0) {
-                    // Formatear los datos y obtener los totales
-                    let food_total = 0;
-                    let transportation_total = 0;
-                    let titleTable: any = {};
-                    const carrerTable = carrerData.map((item: any, index: number) => {
-                        const tableData = [
-                            index + 1,
-                            formatRut(item.practices.student.rut),
-                            item.practices.student.check_digit,
-                            `${item.practices.student.name} ${item.practices.student.pat_last_name} ${item.practices.student.mat_last_name}`,
-                            formatDate(item.practices.subject.start_date),
-                            formatDate(item.practices.subject.end_date),
-                            item.practices.establishment.name,
-                            item.practices.establishment.commune.name,
-                            item.practices.payment.account_number,
-                            item.practices.payment.bank,
-                            `$ ${formatMoney(item.practices.payment.transportation_amount)}`,
-                            `$ ${formatMoney(item.practices.payment.food_amount)}`,
-                            `$ ${formatMoney(item.practices.payment.transportation_amount + item.practices.payment.food_amount)}`,
-                        ]
-                        
-                        titleTable = {
-                            name_career: item.name,
-                            code_career: item.code,
-                            name_subject: item.practices.subject.name,
-                            code_subject: item.practices.subject.code
-                        };
-                        food_total += item.practices.payment.food_amount;
-                        transportation_total += item.practices.payment.transportation_amount;
+        // Obtener los datos enviados en la solicitud, formato: [ {"code": "201", "subjects": ["SU201", "SU202", ...] }, ... ]
+        let dataExcel = await getDataWorksheet(req.body);
     
-                        return tableData;
-                    })
-    
-                    /* const totales = [
-                            `$ ${formatMoney(transportation_total)}`,
-                            `$ ${formatMoney(food_total)}`,
-                            `$ ${formatMoney(food_total + transportation_total)}`
-                        ];
-                    carrerTable.push(totales); */
-                    
-                    // Agrega los datos de la carrera y los datos del estudiantes en practica en la data
-                    const objCarrer = {
-                        title: `CARRERA ${titleTable.code_career}: ${titleTable.name_career} - (${titleTable.code_subject}) - ${titleTable.name_subject}`,
-                        rows: 
-                            carrerTable
-                        ,
-                        totales: {
-                            transportation: `$ ${formatMoney(transportation_total)}`,
-                            food: `$ ${formatMoney(food_total)}`,
-                            total: `$ ${formatMoney(food_total + transportation_total)}`
-                        }
-                    }
-
-                    data.push(objCarrer);
-                }
-            }
-        }
         return res.status(200).json({
             message: "Successfuly query",
-            response: data
+            response: dataExcel
         })
-
-
+    
     } catch (error: any) {
         console.error(error)
         return res.status(500).json({
@@ -198,161 +36,16 @@ export class WorksheetModule {
             error: error.message
         });
     }
+}
 
-  }
-
-  static async generateWorksheet(req: Request, res: Response){
+static async generateWorksheet(req: Request, res: Response){
     try {
-        const careers = req.body;
-
-        let data: any = [];
-
-        for (const carrer of careers) {
-            const { code, practiceNumbers } = carrer;
-
-            for (const number of practiceNumbers) {
-                // Obtener los registros de una carrera para cierto numero de practica profesional
-                const carrerData = await Career.findAll({
-                    attributes: [
-                        "id",
-                        "code",
-                        "name"
-                    ],
-                    where: {
-                        code: code
-                    },
-                    include: [
-                        {
-                            attributes: [
-                                "id",
-                                "status"
-                            ],
-                            model: Practice,
-                            as: "practices",
-                            where: {
-                                status: 1
-                            },
-                            include: [
-                                {
-                                    attributes: [
-                                        "name",
-                                        "pat_last_name",
-                                        "mat_last_name",
-                                        "rut",
-                                        "check_digit"
-                                    ],
-                                    model: User,
-                                    as: "student"
-                                },
-                                {
-                                    attributes: [
-                                        "name",
-                                        "code",
-                                        "type",
-                                        "practice_number",
-                                        "start_date",
-                                        "end_date"
-                                    ],
-                                    model: Subject,
-                                    as: "subject",
-                                    where: {
-                                        type: "Profesional",
-                                        practice_number: number
-                                    },
-                                    order: [
-                                        ['practice_number', 'ASC']
-                                    ],
-                                },
-                                {
-                                    attributes: [
-                                        "account_number",
-                                        "bank",
-                                        "transportation_amount",
-                                        "food_amount"
-                                    ],
-                                    model: Payment,
-                                    as: "payment"
-                                },
-                                {
-                                    attributes: [
-                                        "name"
-                                    ],
-                                    model: Establishment,
-                                    as: "establishment",
-                                    include: [
-                                        {
-                                            attributes: [
-                                                "name"
-                                            ],
-                                            model: Commune,
-                                            as: "commune"
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ],
-                    order: [
-                        ['name', 'ASC']
-                    ],
-                    raw: true,
-                    nest: true,
-                })
-                
-                //Concatenar arreglos
-                data = [...data, ...carrerData];
-            }
-        }
-
-        // Separar en arreglos por cada asignatura
-        let numberStudent = 1;
-        let indiceArreglo = 0;
-        let arrayOld = "";
-        let rowsExcel: any[] = [];
-        data.forEach((row: any, index: number) => {
-            const code = row.practices.subject.code;
-            if (code != arrayOld) {
-                rowsExcel[indiceArreglo] = [];
-                numberStudent = 1;
-                arrayOld = code;
-                indiceArreglo++
-            }
-            
-            const rowExcel = {
-                data: [
-                    "",
-                    numberStudent,
-                    formatRut(row.practices.student.rut),
-                    row.practices.student.check_digit,
-                    `${row.practices.student.name} ${row.practices.student.pat_last_name} ${row.practices.student.mat_last_name}`,
-                    formatDate(row.practices.subject.start_date),
-                    formatDate(row.practices.subject.end_date),
-                    row.practices.establishment.name,
-                    row.practices.establishment.commune.name,
-                    row.practices.payment.account_number,
-                    row.practices.payment.bank,
-                    row.practices.payment.transportation_amount,
-                    row.practices.payment.food_amount,
-                    row.practices.payment.transportation_amount + row.practices.payment.food_amount,
-                ],
-                name_subject: row.practices.subject.name,
-                code_subject: row.practices.subject.code,
-                name_career: row.name,
-                code_career: row.code,
-                transportation: row.practices.payment.transportation_amount,
-                food: row.practices.payment.food_amount,
-            }
-            //Obtener ultimo elemento del arreglo
-            const lastArray = rowsExcel[rowsExcel.length - 1];
-            lastArray.push(rowExcel)
-            numberStudent++;
-        });
-
-        console.log(rowsExcel);
+        
+        const dataExcel = await getDataWorksheet(req.body);
 
         // Creacion del excel (libro y pagina)
         const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('MiHojaDeCalculo');
+        const worksheet = workbook.addWorksheet('Practicas');
 
         // Estilos de letra
         const fontStyleBold = {
@@ -419,26 +112,21 @@ export class WorksheetModule {
         // Creacion de las tablas
         let codeOld = "";
         let countRow = 5;
-        let food_total = 0;
-        let transportation_total = 0;
         let lastRow: any;
         const cellAlignment = ["center", "left", "center", "left", "center", "center", "left", "center", "center", "center", "right", "right", "right"];
-        rowsExcel.forEach((subject: any) => {
-            let subjectData = subject[0];
-            // Crear encabezado de la tabla
+        dataExcel.forEach((subject: any) => {
             worksheet.addRow([]);
             countRow ++;
-
             // Crear titulo externo de la tabla
-            const title = `CARRERA ${subjectData.code_career}: ${subjectData.name_career} - (${subjectData.code_subject}) - ${subjectData.name_subject}`;
-            worksheet.addRow(["", title.toUpperCase()]);
+            const title = subject.title.toUpperCase();
+            console.log(title)
+            worksheet.addRow(["", title]);
             worksheet.mergeCells(`B${countRow}:N${countRow}`)
             // Agregar estilo a la fila
             lastRow = worksheet.lastRow;
             lastRow.eachCell({ includeEmpty: true }, (cell: any) => {
                 cell.font = fontStyleBold;
             });
-            codeOld = subjectData.code_subject;
             countRow++
             
             // Crear titulos de la tabla
@@ -458,6 +146,9 @@ export class WorksheetModule {
                     cell.alignment = { vertical: "middle", horizontal: "center" };
                     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "D0CECE" } };
                     cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+                }
+                if (cellNumber > 11) {
+                    cell.numFmt = '$#,##0';
                 }
             });
             countRow++
@@ -495,8 +186,8 @@ export class WorksheetModule {
             countRow += 2
 
             // Agregar datos de estudiantes
-            subject.forEach((row: any, index: number) => {
-                worksheet.addRow(row.data);
+            subject.rows.forEach((row: any, index: number) => {
+                worksheet.addRow(["", ...row]);
                 lastRow = worksheet.lastRow;
                 lastRow.eachCell({ includeEmpty: true }, (cell: any, cellNumber: number) => {
                     if (cellNumber > 1) {
@@ -508,15 +199,12 @@ export class WorksheetModule {
                         cell.numFmt = '$#,##0';
                     }
                 });
-                // Sumar montos de alimentacion y locomocion a los totales
-                transportation_total += row.transportation;
-                food_total += row.food;
-                countRow++
+                countRow++;
 
                 // Añadir al final de una tabla los totales
-                if (index + 1 == subject.length) {
-                    const cellTotal1 = [null, null, null, null, null, null, null, null, null, null, null, transportation_total, food_total, transportation_total + food_total];
-                    const cellTotal2 = [null, null, null,null, null, null, null, null, null, null, null, null, "TOTAL", transportation_total + food_total];
+                if (index + 1 == subject.rows.length) {
+                    const cellTotal1 = [null, null, null, null, null, null, null, null, null, null, null, subject.total_transportation, subject.total_food, subject.total_transportation + subject.total_food];
+                    const cellTotal2 = [null, null, null,null, null, null, null, null, null, null, null, null, "TOTAL", subject.total];
                     worksheet.addRow(cellTotal1);
                     lastRow = worksheet.lastRow;
                     lastRow.eachCell({ includeEmpty: false }, (cell: any, cellNumber: number) => {
@@ -538,8 +226,6 @@ export class WorksheetModule {
                             cell.numFmt = '$#,##0';
                         }
                     });
-                    food_total = 0;
-                    transportation_total = 0;
                     countRow += 2;
                 }
             });            
@@ -559,6 +245,5 @@ export class WorksheetModule {
         });
     }
 }
-
 
 }
